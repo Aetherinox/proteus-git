@@ -1,0 +1,35 @@
+#!/bin/bash
+
+#    proteus-apt-url
+#
+#    Displays the URL and filename to an apt package
+#    that is to be downloaded.
+#
+#    Copyright (C) 2023 Aetherinox
+#
+#    script requires apt-move to be installed
+
+FETCH=/usr/lib/apt-move/fetch
+
+# Cleaning the downloaded files
+sudo apt-get clean
+
+if [ ! -f $FETCH ]
+then
+	echo 'Install apt-move, as:'
+	echo ' # apt-get install apt-move'
+	exit 2
+fi;
+
+if [ -z "$1" ]
+then
+	echo 'Usage:'
+	echo '  ' $0 '<package>'
+	exit 1
+fi
+
+url=$(sudo $FETCH -t $1 | tail -n 1)
+filename="${url##*/}"
+
+echo $filename
+echo $url
