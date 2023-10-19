@@ -59,11 +59,11 @@ STATUS_HALT="${BOLD}${YELLOW} HALT ${NORMAL}"
 
 apt_dir_home="$HOME/bin"
 app_file_this=$(basename "$0")
-app_file_proteus="${apt_dir_home}/proteus"
+app_file_proteus="${apt_dir_home}/proteus-fetcher"
 app_repo_author="Aetherinox"
-app_title="apt-get fetcher (${app_repo_author})"
+app_title="Proteus Fetcher"
 app_ver=("1" "0" "0" "0")
-app_repo="apt-get-fetcher"
+app_repo="proteus-fetcher"
 app_repo_branch="main"
 app_repo_apt="proteus-apt-repo"
 app_repo_apt_pkg="aetherinox-${app_repo_apt}-archive"
@@ -76,41 +76,23 @@ app_pid=$BASHPID
 app_queue_url=()
 app_i=0
 
-#   --------------------------------------------------------------
-#   vars > define passwd file
-#
-#   generated passwords will be stored in the app bin folder
-#   and the perms on the file being severely restricted.
-#   --------------------------------------------------------------
-
-app_dir_bin_pwd="${apt_dir_home}/pwd"
-app_file_bin_pwd="${app_dir_bin_pwd}/mysql.pwd"
-
 ##--------------------------------------------------------------------------
 #   exports
-#
-#   GDK_BACKEND     vital for running proteus in Ubuntu 23 which switches
-#                   GNOME from x11 to Wayland as of Ubuntu 21.04 in 2021.
 ##--------------------------------------------------------------------------
 
-export GDK_BACKEND=x11
 export DATE=$(date '+%Y%m%d')
 export YEAR=$(date +'%Y')
 export TIME=$(date '+%H:%M:%S')
 export ARGS=$1
 export LOGS_DIR="$app_dir/logs"
-export LOGS_FILE="$LOGS_DIR/proteus_${DATE}.log"
+export LOGS_FILE="$LOGS_DIR/proteus-apt-get_${DATE}.log"
 export SECONDS=0
 
 ##--------------------------------------------------------------------------
 #   vars > general
 ##--------------------------------------------------------------------------
 
-gui_width=540
-gui_height=525
-gui_column="Available Packages"
-gui_about="An app manager which allows you to install applications and packages with very minimal interaction."
-gui_desc="Select the app / package you wish to install. Most apps will run as silent installs.\n\nStart typing or press <span color='#3477eb'><b>CTRL+F</b></span> to search for an app\n\nIf you encounter issues, review the logfile located at:\n      <span color='#3477eb'><b>${LOGS_FILE}</b></span>\n\n"
+gui_about="Internal system to Proteus App Manager which grabs debian packages."
 
 ##--------------------------------------------------------------------------
 #   distro
@@ -193,7 +175,6 @@ opt_usage()
     printf '  %-5s %-40s\n' "Usage:" "" 1>&2
     printf '  %-5s %-40s\n' "    " "${0} [${GREYL}options${NORMAL}]" 1>&2
     printf '  %-5s %-40s\n\n' "    " "${0} [${GREYL}-h${NORMAL}] [${GREYL}-d${NORMAL}] [${GREYL}-n${NORMAL}] [${GREYL}-s${NORMAL}] [${GREYL}-t THEME${NORMAL}] [${GREYL}-v${NORMAL}]" 1>&2
-    printf '  %-5s %-40s\n' "    " "${0} [${GREYL}-i \"NodeJS\" --njs-ver 18${NORMAL}]" 1>&2
     printf '  %-5s %-40s\n' "Options:" "" 1>&2
     printf '  %-5s %-18s %-40s\n' "    " "-d, --dev" "dev mode" 1>&2
     printf '  %-5s %-18s %-40s\n' "    " "-h, --help" "show help menu" 1>&2
@@ -204,11 +185,6 @@ opt_usage()
     printf '  %-5s %-18s %-40s\n' "    " "-n, --nullrun" "dev: null run" 1>&2
     printf '  %-5s %-18s %-40s\n' "    " "" "simulate app installs (no changes)" 1>&2
     printf '  %-5s %-18s %-40s\n' "    " "-s, --silent" "silent mode which disables logging" 1>&2
-    printf '  %-5s %-18s %-40s\n' "    " "-t, --theme" "specify theme to use" 1>&2
-    printf '  %-5s %-18s %-40s\n' "    " "" "    Adwaita" 1>&2
-    printf '  %-5s %-18s %-40s\n' "    " "" "    Adwaita-dark" 1>&2
-    printf '  %-5s %-18s %-40s\n' "    " "" "    HighContrast" 1>&2
-    printf '  %-5s %-18s %-40s\n' "    " "" "    HighContrastInverse" 1>&2
     printf '  %-5s %-18s %-40s\n' "    " "-u, --update" "update ${app_file_proteus} executable" 1>&2
     printf '  %-5s %-18s %-40s\n' "    " "    --branch" "branch to update from" 1>&2
     printf '  %-5s %-18s %-40s\n' "    " "-v, --version" "current version of app manager" 1>&2
@@ -257,11 +233,6 @@ while [ $# -gt 0 ]; do
             echo -e "  ${FUCHSIA}${BLINK}Logging Disabled{NORMAL}"
             ;;
 
-    -t*|--theme*)
-            if [[ "$1" != *=* ]]; then shift; fi
-            OPT_THEME="${1#*=}"
-            ;;
-        
     -u|--update)
             OPT_UPDATE=true
             ;;
@@ -326,7 +297,7 @@ Logs_Begin()
     if [ $OPT_NOLOG ] ; then
         echo
         echo
-        printf '%-57s %-5s' "    Logging for this manager has been disabled." ""
+        printf '%-57s %-5s' "    Logging for this package has been disabled." ""
         echo
         echo
         sleep 3
@@ -635,11 +606,16 @@ exit()
 #
 #   creates a new file inside /etc/profile.d/ which includes the new
 #   proteus bin folder.
+#
+#   proteus-aptget.sh will house the path needed for the script to run
+#   anywhere with an entry similar to:
+#
+#       export PATH="/home/aetherinox/bin:$PATH"
 ##--------------------------------------------------------------------------
 
 envpath_add()
 {
-    local file_env=/etc/profile.d/proteus.sh
+    local file_env=/etc/profile.d/proteus-fetcher.sh
     if [ "$2" = "force" ] || ! echo $PATH | $(which egrep) -q "(^|:)$1($|:)" ; then
         if [ "$2" = "after" ] ; then
             echo 'export PATH="$PATH:'$1'"' | sudo tee $file_env > /dev/null
@@ -745,17 +721,15 @@ app_setup()
     clear
 
     local ReqTitle=${1}
-    local bMissingWhip=false
+    local bMissingAptmove=false
     local bMissingCurl=false
     local bMissingWget=false
-    local bMissingNotify=false
-    local bMissingYad=false
     local bMissingGPG=false
     local bMissingRepo=false
 
     # require whiptail
-    if ! [ -x "$(command -v whiptail)" ]; then
-        bMissingWhip=true
+    if ! [ -x "$(command -v apt-move)" ]; then
+        bMissingAptmove=true
     fi
 
     # require curl
@@ -766,16 +740,6 @@ app_setup()
     # require wget
     if ! [ -x "$(command -v wget)" ]; then
         bMissingWget=true
-    fi
-
-    # require wget
-    if ! [ -x "$(command -v notify-send)" ]; then
-        bMissingNotify=true
-    fi
-
-    # require yad
-    if ! [ -x "$(command -v yad)" ]; then
-        bMissingYad=true
     fi
 
     ##--------------------------------------------------------------------------
@@ -800,11 +764,11 @@ app_setup()
     # Check if contains title
     # If so, called from another function
     if [ -n "$ReqTitle" ]; then
-        if [ "$bMissingWhip" = true ] || [ "$bMissingCurl" = true ] || [ "$bMissingWget" = true ] || [ "$bMissingNotify" = true ] || [ "$bMissingYad" = true ] || [ "$bMissingGPG" = true ] || [ "$bMissingRepo" = true ] || [ -n "${OPT_DEV_NULLRUN}" ]; then
+        if [ "$bMissingAptmove" = true ] || [ "$bMissingCurl" = true ] || [ "$bMissingWget" = true ] || [ "$bMissingGPG" = true ] || [ "$bMissingRepo" = true ] || [ -n "${OPT_DEV_NULLRUN}" ]; then
             echo -e "[ ${STATUS_HALT} ]"
         fi
     else
-        if [ "$bMissingWhip" = true ] || [ "$bMissingCurl" = true ] || [ "$bMissingWget" = true ] || [ "$bMissingNotify" = true ] || [ "$bMissingYad" = true ] || [ "$bMissingGPG" = true ] || [ "$bMissingRepo" = true ] || [ -n "${OPT_DEV_NULLRUN}" ]; then
+        if [ "$bMissingAptmove" = true ] || [ "$bMissingCurl" = true ] || [ "$bMissingWget" = true ] || [ "$bMissingGPG" = true ] || [ "$bMissingRepo" = true ] || [ -n "${OPT_DEV_NULLRUN}" ]; then
             echo
             title "First Time Setup ..."
             echo
@@ -816,15 +780,15 @@ app_setup()
     #   missing whiptail
     ##--------------------------------------------------------------------------
 
-    if [ "$bMissingWhip" = true ] || [ -n "${OPT_DEV_NULLRUN}" ]; then
-        printf "%-57s %-5s\n" "${TIME}      Installing whiptail package" | tee -a "${LOGS_FILE}" >/dev/null
+    if [ "$bMissingAptmove" = true ] || [ -n "${OPT_DEV_NULLRUN}" ]; then
+        printf "%-57s %-5s\n" "${TIME}      Installing apt-move package" | tee -a "${LOGS_FILE}" >/dev/null
 
-        printf '%-57s %-5s' "    |--- Adding whiptail package" ""
+        printf '%-57s %-5s' "    |--- Adding apt-move package" ""
         sleep 0.5
 
         if [ -z "${OPT_DEV_NULLRUN}" ]; then
             sudo apt-get update -y -q >> /dev/null 2>&1
-            sudo apt-get install whiptail -y -qq >> /dev/null 2>&1
+            sudo apt-get install apt-move -y -qq >> /dev/null 2>&1
         fi
 
         sleep 0.5
@@ -863,44 +827,6 @@ app_setup()
         if [ -z "${OPT_DEV_NULLRUN}" ]; then
             sudo apt-get update -y -q >> /dev/null 2>&1
             sudo apt-get install wget -y -qq >> /dev/null 2>&1
-        fi
-
-        sleep 0.5
-        echo -e "[ ${STATUS_OK} ]"
-    fi
-
-    ##--------------------------------------------------------------------------
-    #   missing notify
-    ##--------------------------------------------------------------------------
-
-    if [ "$bMissingNotify" = true ] || [ -n "${OPT_DEV_NULLRUN}" ]; then
-        printf "%-57s %-5s\n" "${TIME}      Installing notify-send package" | tee -a "${LOGS_FILE}" >/dev/null
-
-        printf '%-57s %-5s' "    |--- Adding notify-send package" ""
-        sleep 0.5
-
-        if [ -z "${OPT_DEV_NULLRUN}" ]; then
-            sudo apt-get update -y -q >> /dev/null 2>&1
-            sudo apt-get install libnotify-bin notify-osd -y -qq >> /dev/null 2>&1
-        fi
-
-        sleep 0.5
-        echo -e "[ ${STATUS_OK} ]"
-    fi
-
-    ##--------------------------------------------------------------------------
-    #   missing yad
-    ##--------------------------------------------------------------------------
-
-    if [ "$bMissingYad" = true ] || [ -n "${OPT_DEV_NULLRUN}" ]; then
-        printf "%-57s %-5s\n" "${TIME}      Installing yad package" | tee -a "${LOGS_FILE}" >/dev/null
-
-        printf '%-57s %-5s' "    |--- Adding yad package" ""
-        sleep 0.5
-
-        if [ -z "${OPT_DEV_NULLRUN}" ]; then
-            sudo apt-get update -y -q >> /dev/null 2>&1
-            sudo apt-get install yad -y -qq >> /dev/null 2>&1
         fi
 
         sleep 0.5
@@ -960,9 +886,9 @@ app_setup()
     ##--------------------------------------------------------------------------
 
     if ! [ -f "$app_file_proteus" ] || [ -n "${OPT_DEV_NULLRUN}" ]; then
-        printf "%-57s %-5s\n" "${TIME}      Installing App Manager" | tee -a "${LOGS_FILE}" >/dev/null
+        printf "%-57s %-5s\n" "${TIME}      Installing ${app_title}" | tee -a "${LOGS_FILE}" >/dev/null
 
-        printf '%-57s %-5s' "    |--- Installing App Manager" ""
+        printf '%-57s %-5s' "    |--- Installing ${app_title}" ""
         sleep 0.5
 
         if [ -z "${OPT_DEV_NULLRUN}" ]; then
@@ -1077,7 +1003,7 @@ app_functions=(
 
 declare -A get_docs_uri
 get_docs_uri=(
-    ["$app_dialog"]='http://joeyh.name/code/alien/'
+    ["$app_dialog"]='http://url.here'
 )
 
 ##--------------------------------------------------------------------------
@@ -1110,12 +1036,9 @@ show_header()
     echo -e " ${BLUE}-------------------------------------------------------------------------${NORMAL}"
     echo -e " ${GREEN}${BOLD} ${app_title} - v$(get_version)${NORMAL}${MAGENTA}"
     echo
-    echo -e "  This manager allows you to install a large number of libraries"
-    echo -e "  and apps on your device. It also includes an array of patches &"
-    echo -e "  mods to change how the OS works. Select from the list below."
-    echo
-    echo -e "  Some of these programs and libraries may take several minutes to"
-    echo -e "  install; do not force kill this wizard."
+    echo -e "  This is a package which handles the Proteus App Manager behind"
+    echo -e "  the scene by grabbing from the list of registered packages"
+    echo -e "  and adding them to the queue to be updated."
     echo
 
     if [ -n "${OPT_DEV_NULLRUN}" ]; then
@@ -1123,16 +1046,6 @@ show_header()
         printf '%-35s %-40s\n' "  ${BOLD}${DEVGREY}USER ${NORMAL}" "${BOLD}${FUCHSIA} ${USER} ${NORMAL}"
         printf '%-35s %-40s\n' "  ${BOLD}${DEVGREY}APPS ${NORMAL}" "${BOLD}${FUCHSIA} ${app_i} ${NORMAL}"
         printf '%-35s %-40s\n' "  ${BOLD}${DEVGREY}DEV ${NORMAL}" "${BOLD}${FUCHSIA} $([ -n "${OPT_DEV_ENABLE}" ] && echo "Enabled" || echo "Disabled" ) ${NORMAL}"
-        echo
-    fi
-
-    if [ -n "$(ls -A "${app_dir_bin_pwd}" 2>/dev/null)" ]; then
-        echo -e " ${BLUE}-------------------------------------------------------------------------${NORMAL}"
-        echo
-        echo -e " ${BLINK}${ORANGE}${BOLD} WARNING ${WHITE} ! ${ORANGE} WARNING ${WHITE} ! ${ORANGE} WARNING ${WHITE} ! ${ORANGE} WARNING ${WHITE} ! ${ORANGE} WARNING ${WHITE} ! ${ORANGE} WARNING${NORMAL}"
-        echo
-        echo -e "  ${YELLOW}${BOLD}${app_dir_bin_pwd}${NORMAL} CONTAINS SENSITIVE FILES!"
-        echo -e "  DELETE THE FILES IN THE ABOVE FOLDER TO SILENCE THIS MESSAGE."
         echo
     fi
 
