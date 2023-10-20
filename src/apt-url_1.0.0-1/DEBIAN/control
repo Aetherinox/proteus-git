@@ -1,0 +1,9 @@
+Package: apt-url
+Version: 1.0.0-1
+Section: utils
+Priority: optional
+Architecture: all
+Depends: apt-move (>=4.0)
+Maintainer: Aetherinox <aetherinox@proton.me>
+Description: Fetches URLs for specified packages.
+ Provides the download URL for a specified package.
