@@ -11,25 +11,32 @@
 
 FETCH=/usr/lib/apt-move/fetch
 
-# Cleaning the downloaded files
+#	clean up cache
 sudo apt-get clean
 
-if [ ! -f $FETCH ]
-then
+if [ ! -f $FETCH ]; then
 	echo 'Install apt-move, as:'
 	echo ' # apt-get install apt-move'
 	exit 2
-fi;
+fi
 
-if [ -z "$1" ]
-then
+if [ -z "$1" ]; then
 	echo 'Usage:'
 	echo '  ' $0 '<package>'
 	exit 1
 fi
 
+#	get url of package
 url=$(sudo $FETCH -t $1 | tail -n 1)
+
+#	filter out %2b with +
+url="${url/\%2b/"+"}"
+
+#	strip filename from url
 filename="${url##*/}"
 
+#	return filename
 echo $filename
+
+#	return url
 echo $url
