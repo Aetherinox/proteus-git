@@ -22,7 +22,7 @@ This is an internal part of the [Proteus App Manager](https://github.com/Aetheri
 ## Usage
 Download the `proteus-git.sh`.
 ```shell
-wget "https://raw.githubusercontent.com/Aetherinox/proteus-git/main/proteus-git..sh"
+wget "https://raw.githubusercontent.com/Aetherinox/proteus-git/main/proteus-git.sh"
 ```
 
 Set the `proteus-git.sh` to be executable
