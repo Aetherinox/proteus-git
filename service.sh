@@ -57,9 +57,9 @@ STATUS_HALT="${BOLD}${YELLOW} HALT ${NORMAL}"
 #   vars > app
 ##--------------------------------------------------------------------------
 
-apt_dir_home="$HOME/bin"
+app_dir_home="$HOME/bin"
 app_file_this=$(basename "$0")
-app_file_proteus="${apt_dir_home}/proteus-fetcher"
+app_file_proteus="${app_dir_home}/proteus-fetcher"
 app_repo_author="Aetherinox"
 app_title="Proteus Fetcher"
 app_ver=("1" "0" "0" "0")
@@ -76,6 +76,13 @@ app_pid_spin=0
 app_pid=$BASHPID
 app_queue_url=()
 app_i=0
+
+##--------------------------------------------------------------------------
+#   vars > system
+##--------------------------------------------------------------------------
+
+sys_arch=$(dpkg --print-architecture)
+sys_code=$(lsb_release -cs)
 
 ##--------------------------------------------------------------------------
 #   exports
@@ -893,7 +900,7 @@ app_setup()
         sleep 0.5
 
         if [ -z "${OPT_DEV_NULLRUN}" ]; then
-            mkdir -p "$apt_dir_home"
+            mkdir -p "$app_dir_home"
 
             local branch_uri="${app_script/BRANCH/"$app_repo_branch_sel"}"
             sudo wget -O "${app_file_proteus}" -q "$branch_uri" >> $LOGS_FILE 2>&1
