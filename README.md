@@ -22,7 +22,7 @@ This is an internal part of the [Proteus App Manager](https://github.com/Aetheri
 ## Usage
 Download the `proteus-git.sh`.
 ```shell
-wget "https://raw.githubusercontent.com/Aetherinox/proteus-fetcher/main/proteus-fetch..sh"
+wget "https://raw.githubusercontent.com/Aetherinox/proteus-git/main/proteus-git..sh"
 ```
 
 Set the `proteus-git.sh` to be executable
@@ -38,7 +38,7 @@ Then run the script:
 
 <br />
 
-Once the script is ran for the first time, a `bin` file will be created in `/home/$USER/bin/proteus-git` and another file in `/etc/profile.d/proteus-git.sh`. This allows you to execute the proteus fetcher from any folder via:
+Once the script is ran for the first time, a `bin` file will be created in `/home/$USER/bin/proteus-git` and another file in `/etc/profile.d/proteus-git.sh`. This allows you to execute the proteus git app from any folder via:
 ```shell
 proteus-git
 ```
@@ -54,7 +54,7 @@ You can then delete the original `proteus-git.sh` file you downloaded from Githu
 <br />
 
 ## Proteus Apt Repo
-The Proteus Fetcher is developed to manage the packages associated with the [Proteus Apt Repo](https://github.com/Aetherinox/proteus-apt-repo) and is associated to the [Proteus App Manager](https://github.com/Aetherinox/proteus-app-manager). To utilize the Proteus Apt Repo:
+The Proteus Git app is developed to manage the packages associated with the [Proteus Apt Repo](https://github.com/Aetherinox/proteus-apt-repo) and is associated to the [Proteus App Manager](https://github.com/Aetherinox/proteus-app-manager). To utilize the Proteus Apt Repo:
 
 Open Terminal and add the GPG key for the developer to your keyring
 
