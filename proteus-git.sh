@@ -313,7 +313,7 @@ Logs_Begin()
     if [ $OPT_NOLOG ] ; then
         echo
         echo
-        printf '%-70s %-5s' "    Logging for this package has been disabled." ""
+        printf '%-50s %-5s' "    Logging for this package has been disabled." ""
         echo
         echo
         sleep 3
@@ -329,7 +329,7 @@ Logs_Begin()
 
         if ! [[ -p $LOGS_PIPE ]]; then
             mkfifo -m 775 $LOGS_PIPE
-            printf "%-70s %-5s\n" "${TIME}      Creating new pipe ${LOGS_PIPE}" | tee -a "${LOGS_FILE}" >/dev/null
+            printf "%-50s %-5s\n" "${TIME}      Creating new pipe ${LOGS_PIPE}" | tee -a "${LOGS_FILE}" >/dev/null
         fi
 
         LOGS_OBJ=${LOGS_FILE}
@@ -339,16 +339,16 @@ Logs_Begin()
         exec 1>$LOGS_PIPE
         PIPE_OPENED=1
 
-        printf "%-70s %-5s\n" "${TIME}      Logging to ${LOGS_OBJ}" | tee -a "${LOGS_FILE}" >/dev/null
+        printf "%-50s %-5s\n" "${TIME}      Logging to ${LOGS_OBJ}" | tee -a "${LOGS_FILE}" >/dev/null
 
-        printf "%-70s %-5s\n" "${TIME}      Software  : ${app_title}" | tee -a "${LOGS_FILE}" >/dev/null
-        printf "%-70s %-5s\n" "${TIME}      Version   : v$(get_version)" | tee -a "${LOGS_FILE}" >/dev/null
-        printf "%-70s %-5s\n" "${TIME}      Process   : $$" | tee -a "${LOGS_FILE}" >/dev/null
-        printf "%-70s %-5s\n" "${TIME}      OS        : ${OS}" | tee -a "${LOGS_FILE}" >/dev/null
-        printf "%-70s %-5s\n" "${TIME}      OS VER    : ${OS_VER}" | tee -a "${LOGS_FILE}" >/dev/null
+        printf "%-50s %-5s\n" "${TIME}      Software  : ${app_title}" | tee -a "${LOGS_FILE}" >/dev/null
+        printf "%-50s %-5s\n" "${TIME}      Version   : v$(get_version)" | tee -a "${LOGS_FILE}" >/dev/null
+        printf "%-50s %-5s\n" "${TIME}      Process   : $$" | tee -a "${LOGS_FILE}" >/dev/null
+        printf "%-50s %-5s\n" "${TIME}      OS        : ${OS}" | tee -a "${LOGS_FILE}" >/dev/null
+        printf "%-50s %-5s\n" "${TIME}      OS VER    : ${OS_VER}" | tee -a "${LOGS_FILE}" >/dev/null
 
-        printf "%-70s %-5s\n" "${TIME}      DATE      : ${DATE}" | tee -a "${LOGS_FILE}" >/dev/null
-        printf "%-70s %-5s\n" "${TIME}      TIME      : ${TIME}" | tee -a "${LOGS_FILE}" >/dev/null
+        printf "%-50s %-5s\n" "${TIME}      DATE      : ${DATE}" | tee -a "${LOGS_FILE}" >/dev/null
+        printf "%-50s %-5s\n" "${TIME}      TIME      : ${TIME}" | tee -a "${LOGS_FILE}" >/dev/null
 
     fi
 }
@@ -370,7 +370,7 @@ Logs_Finish()
             kill $app_pid_tee >> $LOGS_FILE 2>&1
         fi
 
-        printf "%-70s %-15s\n" "${TIME}      Destroying Pipe ${LOGS_PIPE} (${app_pid_tee})" | tee -a "${LOGS_FILE}" >/dev/null
+        printf "%-50s %-15s\n" "${TIME}      Destroying Pipe ${LOGS_PIPE} (${app_pid_tee})" | tee -a "${LOGS_FILE}" >/dev/null
 
         rm $LOGS_PIPE
         unset PIPE_OPENED
@@ -379,10 +379,8 @@ Logs_Finish()
     duration=$SECONDS
     elapsed="$(($duration / 60)) minutes and $(($duration % 60)) seconds elapsed."
 
-    printf "%-70s %-15s\n" "${TIME}      User Input: OnClick ......... Exit App" | tee -a "${LOGS_FILE}" >/dev/null
-    printf "%-70s %-15s\n\n\n\n" "${TIME}      ${elapsed}" | tee -a "${LOGS_FILE}" >/dev/null
-
-    sudo pkill -9 -f ".$LOGS_FILE." >> $LOGS_FILE 2>&1
+    printf "%-50s %-15s\n" "${TIME}      User Input: OnClick ......... Exit App" | tee -a "${LOGS_FILE}" >/dev/null
+    printf "%-50s %-15s\n\n\n\n" "${TIME}      ${elapsed}" | tee -a "${LOGS_FILE}" >/dev/null
 }
 
 ##--------------------------------------------------------------------------
@@ -400,14 +398,14 @@ Logs_Begin
 if [[ $EUID -ne 0 ]]; then
     sudo -k # make sure to ask for password on next sudo
     if sudo true && [ -n "${USER}" ]; then
-        printf "\n%-70s %-5s\n\n" "${TIME}      SUDO [SIGN-IN]: Welcome, ${USER}" | tee -a "${LOGS_FILE}" >/dev/null
+        printf "\n%-50s %-5s\n\n" "${TIME}      SUDO [SIGN-IN]: Welcome, ${USER}" | tee -a "${LOGS_FILE}" >/dev/null
     else
-        printf "\n%-70s %-5s\n\n" "${TIME}      SUDO Failure: Wrong Password x3" | tee -a "${LOGS_FILE}" >/dev/null
+        printf "\n%-50s %-5s\n\n" "${TIME}      SUDO Failure: Wrong Password x3" | tee -a "${LOGS_FILE}" >/dev/null
         exit 1
     fi
 else
     if [ -n "${USER}" ]; then
-        printf "\n%-70s %-5s\n\n" "${TIME}      SUDO [EXISTING]: $USER" | tee -a "${LOGS_FILE}" >/dev/null
+        printf "\n%-50s %-5s\n\n" "${TIME}      SUDO [EXISTING]: $USER" | tee -a "${LOGS_FILE}" >/dev/null
     fi
 fi
 
@@ -439,7 +437,7 @@ spinner_halt()
     if ps -p $app_pid_spin > /dev/null
     then
         kill -9 $app_pid_spin 2> /dev/null
-        printf "\n%-70s %-5s\n" "${TIME}      KILL Spinner: PID (${app_pid_spin})" | tee -a "${LOGS_FILE}" >/dev/null
+        printf "\n%-50s %-5s\n" "${TIME}      KILL Spinner: PID (${app_pid_spin})" | tee -a "${LOGS_FILE}" >/dev/null
     fi
 }
 
@@ -576,12 +574,12 @@ begin()
     # spinner PID
     app_pid_spin=$!
 
-    printf "%-70s %-5s\n\n" "${TIME}      NEW Spinner: PID (${app_pid_spin})" | tee -a "${LOGS_FILE}" >/dev/null
+    printf "%-50s %-5s\n\n" "${TIME}      NEW Spinner: PID (${app_pid_spin})" | tee -a "${LOGS_FILE}" >/dev/null
 
     # kill spinner on any signal
     trap "kill -9 $app_pid_spin 2> /dev/null" `seq 0 15`
 
-    printf '%-70s %-5s' "  ${1}" ""
+    printf '%-50s %-5s' "  ${1}" ""
 
     sleep 0.3
 }
@@ -659,14 +657,14 @@ app_update()
     sleep 1
     echo
 
-    printf '%-70s %-5s' "    |--- Downloading update" ""
+    printf '%-50s %-5s' "    |--- Downloading update" ""
     sleep 1
     if [ -z "${OPT_DEV_NULLRUN}" ]; then
         sudo wget -O "${app_file_proteus}" -q "$branch_uri" >> $LOGS_FILE 2>&1
     fi
     echo -e "[ ${STATUS_OK} ]"
 
-    printf '%-70s %-5s' "    |--- Set ownership to ${USER}" ""
+    printf '%-50s %-5s' "    |--- Set ownership to ${USER}" ""
     sleep 1
     if [ -z "${OPT_DEV_NULLRUN}" ]; then
         sudo chgrp ${USER} ${app_file_proteus} >> $LOGS_FILE 2>&1
@@ -674,7 +672,7 @@ app_update()
     fi
     echo -e "[ ${STATUS_OK} ]"
 
-    printf '%-70s %-5s' "    |--- Set perms to u+x" ""
+    printf '%-50s %-5s' "    |--- Set perms to u+x" ""
     sleep 1
     if [ -z "${OPT_DEV_NULLRUN}" ]; then
         sudo chmod u+x ${app_file_proteus} >> $LOGS_FILE 2>&1
@@ -797,9 +795,9 @@ app_setup()
     ##--------------------------------------------------------------------------
 
     if [ "$bMissingAptmove" = true ] || [ -n "${OPT_DEV_NULLRUN}" ]; then
-        printf "%-70s %-5s\n" "${TIME}      Installing apt-move package" | tee -a "${LOGS_FILE}" >/dev/null
+        printf "%-50s %-5s\n" "${TIME}      Installing apt-move package" | tee -a "${LOGS_FILE}" >/dev/null
 
-        printf '%-70s %-5s' "    |--- Adding apt-move package" ""
+        printf '%-50s %-5s' "    |--- Adding apt-move package" ""
         sleep 0.5
 
         if [ -z "${OPT_DEV_NULLRUN}" ]; then
@@ -816,9 +814,9 @@ app_setup()
     ##--------------------------------------------------------------------------
 
     if [ "$bMissingCurl" = true ] || [ -n "${OPT_DEV_NULLRUN}" ]; then
-        printf "%-70s %-5s\n" "${TIME}      Installing curl package" | tee -a "${LOGS_FILE}" >/dev/null
+        printf "%-50s %-5s\n" "${TIME}      Installing curl package" | tee -a "${LOGS_FILE}" >/dev/null
 
-        printf '%-70s %-5s' "    |--- Adding curl package" ""
+        printf '%-50s %-5s' "    |--- Adding curl package" ""
         sleep 0.5
     
         if [ -z "${OPT_DEV_NULLRUN}" ]; then
@@ -835,9 +833,9 @@ app_setup()
     ##--------------------------------------------------------------------------
 
     if [ "$bMissingWget" = true ] || [ -n "${OPT_DEV_NULLRUN}" ]; then
-        printf "%-70s %-5s\n" "${TIME}      Installing wget package" | tee -a "${LOGS_FILE}" >/dev/null
+        printf "%-50s %-5s\n" "${TIME}      Installing wget package" | tee -a "${LOGS_FILE}" >/dev/null
 
-        printf '%-70s %-5s' "    |--- Adding wget package" ""
+        printf '%-50s %-5s' "    |--- Adding wget package" ""
         sleep 0.5
 
         if [ -z "${OPT_DEV_NULLRUN}" ]; then
@@ -854,9 +852,9 @@ app_setup()
     ##--------------------------------------------------------------------------
 
     if [ "$bMissingGPG" = true ] || [ -n "${OPT_DEV_NULLRUN}" ]; then
-        printf "%-70s %-5s\n" "${TIME}      Adding ${app_repo_author} GPG key: [https://github.com/${app_repo_author}.gpg]" | tee -a "${LOGS_FILE}" >/dev/null
+        printf "%-50s %-5s\n" "${TIME}      Adding ${app_repo_author} GPG key: [https://github.com/${app_repo_author}.gpg]" | tee -a "${LOGS_FILE}" >/dev/null
 
-        printf '%-70s %-5s' "    |--- Adding github.com/${app_repo_author}.gpg" ""
+        printf '%-50s %-5s' "    |--- Adding github.com/${app_repo_author}.gpg" ""
         sleep 0.5
 
         if [ -z "${OPT_DEV_NULLRUN}" ]; then
@@ -872,9 +870,9 @@ app_setup()
     ##--------------------------------------------------------------------------
 
     if [ "$bMissingRepo" = true ] || [ -n "${OPT_DEV_NULLRUN}" ]; then
-        printf "%-70s %-5s\n" "${TIME}      Registering ${app_repo_apt}: https://raw.githubusercontent.com/${app_repo_author}/${app_repo_apt}/master" | tee -a "${LOGS_FILE}" >/dev/null
+        printf "%-50s %-5s\n" "${TIME}      Registering ${app_repo_apt}: https://raw.githubusercontent.com/${app_repo_author}/${app_repo_apt}/master" | tee -a "${LOGS_FILE}" >/dev/null
 
-        printf '%-70s %-5s' "    |--- Registering ${app_repo_apt}" ""
+        printf '%-50s %-5s' "    |--- Registering ${app_repo_apt}" ""
         sleep 0.5
 
         if [ -z "${OPT_DEV_NULLRUN}" ]; then
@@ -884,9 +882,9 @@ app_setup()
         sleep 0.5
         echo -e "[ ${STATUS_OK} ]"
 
-        printf "%-70s %-5s\n" "${TIME}      Updating user repo list with apt-get update" | tee -a "${LOGS_FILE}" >/dev/null
+        printf "%-50s %-5s\n" "${TIME}      Updating user repo list with apt-get update" | tee -a "${LOGS_FILE}" >/dev/null
 
-        printf '%-70s %-5s' "    |--- Updating repo list" ""
+        printf '%-50s %-5s' "    |--- Updating repo list" ""
         sleep 0.5
 
         if [ -z "${OPT_DEV_NULLRUN}" ]; then
@@ -902,9 +900,9 @@ app_setup()
     ##--------------------------------------------------------------------------
 
     if ! [ -f "$app_file_proteus" ] || [ -n "${OPT_DEV_NULLRUN}" ]; then
-        printf "%-70s %-5s\n" "${TIME}      Installing ${app_title}" | tee -a "${LOGS_FILE}" >/dev/null
+        printf "%-50s %-5s\n" "${TIME}      Installing ${app_title}" | tee -a "${LOGS_FILE}" >/dev/null
 
-        printf '%-70s %-5s' "    |--- Installing ${app_title}" ""
+        printf '%-50s %-5s' "    |--- Installing ${app_title}" ""
         sleep 0.5
 
         if [ -z "${OPT_DEV_NULLRUN}" ]; then
@@ -971,11 +969,11 @@ notify-send()
 #   output some logging
 ##--------------------------------------------------------------------------
 
-[ -n "${OPT_DEV_ENABLE}" ] && printf "%-70s %-5s\n" "${TIME}      Notice: Dev Mode Enabled" | tee -a "${LOGS_FILE}" >/dev/null
-[ -z "${OPT_DEV_ENABLE}" ] && printf "%-70s %-5s\n" "${TIME}      Notice: Dev Mode Disabled" | tee -a "${LOGS_FILE}" >/dev/null
+[ -n "${OPT_DEV_ENABLE}" ] && printf "%-50s %-5s\n" "${TIME}      Notice: Dev Mode Enabled" | tee -a "${LOGS_FILE}" >/dev/null
+[ -z "${OPT_DEV_ENABLE}" ] && printf "%-50s %-5s\n" "${TIME}      Notice: Dev Mode Disabled" | tee -a "${LOGS_FILE}" >/dev/null
 
-[ -n "${OPT_DEV_NULLRUN}" ] && printf "%-70s %-5s\n\n" "${TIME}      Notice: Dev Option: 'No Actions' Enabled" | tee -a "${LOGS_FILE}" >/dev/null
-[ -z "${OPT_DEV_NULLRUN}" ] && printf "%-70s %-5s\n\n" "${TIME}      Notice: Dev Option: 'No Actions' Disabled" | tee -a "${LOGS_FILE}" >/dev/null
+[ -n "${OPT_DEV_NULLRUN}" ] && printf "%-50s %-5s\n\n" "${TIME}      Notice: Dev Option: 'No Actions' Enabled" | tee -a "${LOGS_FILE}" >/dev/null
+[ -z "${OPT_DEV_NULLRUN}" ] && printf "%-50s %-5s\n\n" "${TIME}      Notice: Dev Option: 'No Actions' Disabled" | tee -a "${LOGS_FILE}" >/dev/null
 
 ##--------------------------------------------------------------------------
 #   list > packages
@@ -1095,8 +1093,8 @@ show_header()
 
     sleep 0.3
 
-    printf "%-70s %-5s\n" "${TIME}      Successfully loaded ${app_i} packages" | tee -a "${LOGS_FILE}" >/dev/null
-    printf "%-70s %-5s\n" "${TIME}      Waiting for user input ..." | tee -a "${LOGS_FILE}" >/dev/null
+    printf "%-50s %-5s\n" "${TIME}      Successfully loaded ${app_i} packages" | tee -a "${LOGS_FILE}" >/dev/null
+    printf "%-50s %-5s\n" "${TIME}      Waiting for user input ..." | tee -a "${LOGS_FILE}" >/dev/null
 
     echo -e "  ${BOLD}${NORMAL}Waiting on selection ..." >&2
     echo
@@ -1161,15 +1159,15 @@ app_start()
 
             if [[ -f "$app_dir/$app_filename" ]]; then
                 if [[ "$arch" == "all" ]] && [[ $app_filename == *all.deb ]]; then
-                    printf '%-70s %-5s' "    |--- Get $app_filename" ""
+                    printf '%-50s %-5s' "    |--- Get ${app_filename:0:35}..." "" 1>&2
                     mv "$app_dir/$app_filename" "$app_dir_storage/all/"
                     echo -e "[ ${STATUS_OK} ]"
                 elif [[ "$arch" == "amd64" ]] && [[ $app_filename == *amd64.deb ]]; then
-                    printf '%-70s %-5s' "    |--- Get $app_filename" ""
+                    printf '%-50s %-5s' "    |--- Get ${app_filename:0:35}..." "" 1>&2
                     mv "$app_dir/$app_filename" "$app_dir_storage/amd64/"
                     echo -e "[ ${STATUS_OK} ]"
                 elif [[ "$arch" == "arm64" ]] && [[ $app_filename == *arm64.deb ]]; then
-                    printf '%-70s %-5s' "    |--- Get $app_filename" ""
+                    printf '%-50s %-5s' "    |--- Get ${app_filename:0:35}..." "" 1>&2
                     mv "$app_dir/$app_filename" "$app_dir_storage/arm64/"
                     echo -e "[ ${STATUS_OK} ]"
                 else
@@ -1182,6 +1180,8 @@ app_start()
 
     finish
 
+    Logs_Finish
+    exit
 }
 
 app_start

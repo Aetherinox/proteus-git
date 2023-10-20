@@ -1,18 +1,26 @@
 #!/bin/bash
 
-#    proteus-apt-url
+##--------------------------------------------------------------------------
+#   @author :           aetherinox
+#   @script :           Proteus apt-url
+#   @when   :           2023-10-19 15:24:32
+#   @url    :           https://github.com/Aetherinox/proteus-git
 #
-#    Displays the URL and filename to an apt package
-#    that is to be downloaded.
+#   requires chmod +x apt-url
 #
-#    Copyright (C) 2023 Aetherinox
-#
-#    script requires apt-move to be installed
+##--------------------------------------------------------------------------
 
 FETCH=/usr/lib/apt-move/fetch
 
-#	clean up cache
+##--------------------------------------------------------------------------
+#   clean cache
+##--------------------------------------------------------------------------
+
 sudo apt-get clean
+
+##--------------------------------------------------------------------------
+#   check if %FETCH (apt-move) available
+##--------------------------------------------------------------------------
 
 if [ ! -f $FETCH ]; then
 	echo 'Install apt-move, as:'
@@ -20,25 +28,44 @@ if [ ! -f $FETCH ]; then
 	exit 2
 fi
 
+##--------------------------------------------------------------------------
+#   check if package provided as param #1
+##--------------------------------------------------------------------------
+
 if [ -z "$1" ]; then
 	echo 'Usage:'
 	echo '  ' $0 '<package>'
 	exit 1
 fi
 
-#	get url of package
+##--------------------------------------------------------------------------
+#   get url of package
+##--------------------------------------------------------------------------
+
 url=$(sudo $FETCH -t $1 | tail -n 1)
 
-#	filter out %2b with +
+##--------------------------------------------------------------------------
+#   filter out %2b with +
+#   filter out %3a with :
+##--------------------------------------------------------------------------
+
 url="${url/\%2b/"+"}"
-#	filter out %3a with :
 url="${url/\%3a/":"}"
 
-#	strip filename from url
+##--------------------------------------------------------------------------
+#   strip filename from url
+##--------------------------------------------------------------------------
+
 filename="${url##*/}"
 
-#	return filename
-echo $filename
+##--------------------------------------------------------------------------
+#   return filename and url
+#
+#	usage:
+#		query=$( sudo ./apt-url "$pkg_arch" )
+#		app_filename=$( echo "$query" | head -n 1; )
+#		app_url=$( echo "$query" | tail -n 1; )
+##--------------------------------------------------------------------------
 
-#	return url
+echo $filename
 echo $url
