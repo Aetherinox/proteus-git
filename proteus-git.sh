@@ -79,6 +79,19 @@ app_pid=$BASHPID
 app_queue_url=()
 app_i=0
 
+
+pkg_arch="kgpg:arm64"
+
+# apt-get download kgpg:arm64
+# sudo ./apt-url "kgpg:arm64"
+
+#   originally apt-get download was utilized, however it has a weird bug
+#   where certain files saved will have a colon in the filename, which
+#   will set the filename to include %3a
+#
+#   to combat this, we will use wget to download the file since this
+#   doesnt seem to have the issue.
+
 ##--------------------------------------------------------------------------
 #   exports
 ##--------------------------------------------------------------------------
@@ -1113,7 +1126,7 @@ app_start()
     IFS=$'\n' lst_pkgs_sorted=($(sort <<<"${lst_packages[*]}"))
     unset IFS
 
-    mkdir -p "${app_dir_storage}/{all,amd64,arm64}"
+    mkdir -p ${app_dir_storage}/{all,amd64,arm64}
 
     for i in "${!lst_pkgs_sorted[@]}"; do
         pkg=${lst_pkgs_sorted[$i]}
@@ -1127,25 +1140,36 @@ app_start()
             local pkg_arch="$pkg:$arch"
 
             #   download "package:arch"
-            apt download "$pkg_arch" >> $LOGS_FILE 2>&1
+            #
+            #   originally apt-get download was utilized, however it has a weird bug
+            #   where certain files saved will have a colon in the filename, which
+            #   will set the filename to include %3a
+            #
+            #   to combat this, we will use wget to download the file since this
+            #   doesnt seem to have the issue.
+            #   apt download "$pkg_arch" >> $LOGS_FILE 2>&1
 
             #   http://us.archive.ubuntu.com/ubuntu/pool/universe/d/<package>/<package>_1.x.x-x_<arch>.deb
             #   app_url=$(sudo ./apt-url "$pkg_arch" | tail -n 1 )
 
             #   <package>_1.x.x-x_<arch>.deb
-            app_filename=$(sudo ./apt-url "$pkg_arch" | head  -n 1 )
+            query=$( sudo ./apt-url "$pkg_arch" )
+            app_filename=$( echo "$query" | head -n 1; )
+            app_url=$( echo "$query" | tail -n 1; )
+
+            wget "$app_url" -q
 
             if [[ -f "$app_dir/$app_filename" ]]; then
                 if [[ "$arch" == "all" ]] && [[ $app_filename == *all.deb ]]; then
-                    printf '%-70s %-5s' "    |--- Downloading $app_filename" ""
+                    printf '%-70s %-5s' "    |--- Get $app_filename" ""
                     mv "$app_dir/$app_filename" "$app_dir_storage/all/"
                     echo -e "[ ${STATUS_OK} ]"
                 elif [[ "$arch" == "amd64" ]] && [[ $app_filename == *amd64.deb ]]; then
-                    printf '%-70s %-5s' "    |--- Downloading $app_filename" ""
+                    printf '%-70s %-5s' "    |--- Get $app_filename" ""
                     mv "$app_dir/$app_filename" "$app_dir_storage/amd64/"
                     echo -e "[ ${STATUS_OK} ]"
                 elif [[ "$arch" == "arm64" ]] && [[ $app_filename == *arm64.deb ]]; then
-                    printf '%-70s %-5s' "    |--- Downloading $app_filename" ""
+                    printf '%-70s %-5s' "    |--- Get $app_filename" ""
                     mv "$app_dir/$app_filename" "$app_dir_storage/arm64/"
                     echo -e "[ ${STATUS_OK} ]"
                 else
