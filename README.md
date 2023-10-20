@@ -83,7 +83,7 @@ sudo apt update
 
 Finally, install `apt-url`:
 ```shell
-sudo apt install apt-move
+sudo apt install apt-url
 ```
 
 Both `apt-move` and `apt-url` will be installed. `apt-url` will be placed in `/usr/bin/apt-url`
