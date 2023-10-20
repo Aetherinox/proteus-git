@@ -4,9 +4,9 @@ echo
 
 ##--------------------------------------------------------------------------
 #   @author :           aetherinox
-#   @script :           Proteus apt-get fetcher
+#   @script :           Proteus Apt Fetcher
 #   @when   :           2023-10-19 15:24:32
-#   @url    :           https://github.com/Aetherinox/proteus-apt-get-fetcher
+#   @url    :           https://github.com/Aetherinox/proteus-fetcher
 #
 #   requires chmod +x setup.sh
 #
@@ -93,7 +93,7 @@ export YEAR=$(date +'%Y')
 export TIME=$(date '+%H:%M:%S')
 export ARGS=$1
 export LOGS_DIR="$app_dir/logs"
-export LOGS_FILE="$LOGS_DIR/proteus-apt-get_${DATE}.log"
+export LOGS_FILE="$LOGS_DIR/proteus-fetcher-${DATE}.log"
 export SECONDS=0
 
 ##--------------------------------------------------------------------------
@@ -970,13 +970,16 @@ notify-send()
 [ -z "${OPT_DEV_NULLRUN}" ] && printf "%-70s %-5s\n\n" "${TIME}      Notice: Dev Option: 'No Actions' Disabled" | tee -a "${LOGS_FILE}" >/dev/null
 
 ##--------------------------------------------------------------------------
-#   associated app functions
+#   list > packages
 ##--------------------------------------------------------------------------
 
 lst_packages=(
     'mysql-server'
+    'mysql-server-core'
     'mysql-common'
     'mysql-client'
+    'mysql-client-core'
+    'mysql-client-core'
     'nginx'
     'nginx-core'
     'nginx-common'
@@ -1017,14 +1020,29 @@ lst_packages=(
     'gnome-keysign'
     'gnome-shell-extension-manager'
     'libc6'
+    'network-manager-config-connectivity-ubuntu'
+    'network-manager-dev'
+    'network-manager-gnome'
+    'network-manager-openvpn-gnome'
+    'network-manager-openvpn'
+    'network-manager-pptp-gnome'
+    'network-manager-pptp'
+    'network-manager'
+    'networkd-dispatcher'
+    'open-vm-tools-desktop'
+    'open-vm-tools-dev'
+    'open-vm-tools'
 )
+
+##--------------------------------------------------------------------------
+#   list > architectures
+##--------------------------------------------------------------------------
 
 lst_arch=(
     'amd64'
     'arm64'
     'all'
 )
-
 
 ##--------------------------------------------------------------------------
 #   associated app urls
