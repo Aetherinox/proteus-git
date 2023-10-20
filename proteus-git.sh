@@ -57,6 +57,8 @@ STATUS_HALT="${BOLD}${YELLOW} HALT ${NORMAL}"
 #   vars > app
 ##--------------------------------------------------------------------------
 
+sys_arch=$(dpkg --print-architecture)
+sys_code=$(lsb_release -cs)
 app_dir_home="$HOME/bin"
 app_file_this=$(basename "$0")
 app_file_proteus="${app_dir_home}/proteus-git"
@@ -71,18 +73,11 @@ app_repo_url="https://github.com/${app_repo_author}/${app_repo}"
 app_mnfst="https://raw.githubusercontent.com/${app_repo_author}/${app_repo}/${app_repo_branch}/manifest.json"
 app_script="https://raw.githubusercontent.com/${app_repo_author}/${app_repo}/BRANCH/setup.sh"
 app_dir=$PWD
-app_dir_storage="$app_dir/incoming/autodownloader/"
+app_dir_storage="$app_dir/incoming/autodownloader/${sys_code}"
 app_pid_spin=0
 app_pid=$BASHPID
 app_queue_url=()
 app_i=0
-
-##--------------------------------------------------------------------------
-#   vars > system
-##--------------------------------------------------------------------------
-
-sys_arch=$(dpkg --print-architecture)
-sys_code=$(lsb_release -cs)
 
 ##--------------------------------------------------------------------------
 #   exports
@@ -975,11 +970,8 @@ notify-send()
 
 lst_packages=(
     'mysql-server'
-    'mysql-server-core'
     'mysql-common'
     'mysql-client'
-    'mysql-client-core'
-    'mysql-client-core'
     'nginx'
     'nginx-core'
     'nginx-common'
@@ -1121,6 +1113,8 @@ app_start()
     IFS=$'\n' lst_pkgs_sorted=($(sort <<<"${lst_packages[*]}"))
     unset IFS
 
+    mkdir -p "${app_dir_storage}/{all,amd64,arm64}"
+
     for i in "${!lst_pkgs_sorted[@]}"; do
         pkg=${lst_pkgs_sorted[$i]}
 
@@ -1150,10 +1144,12 @@ app_start()
                     printf '%-70s %-5s' "    |--- Downloading $app_filename" ""
                     mv "$app_dir/$app_filename" "$app_dir_storage/amd64/"
                     echo -e "[ ${STATUS_OK} ]"
-                elif [[ "$arch" == "arm64" ]] && [[ $app_filename == *arm54.deb ]]; then
+                elif [[ "$arch" == "arm64" ]] && [[ $app_filename == *arm64.deb ]]; then
                     printf '%-70s %-5s' "    |--- Downloading $app_filename" ""
                     mv "$app_dir/$app_filename" "$app_dir_storage/arm64/"
                     echo -e "[ ${STATUS_OK} ]"
+                else
+                    rm "$app_dir/$app_filename"
                 fi
             fi
         done

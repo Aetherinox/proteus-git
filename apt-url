@@ -31,6 +31,8 @@ url=$(sudo $FETCH -t $1 | tail -n 1)
 
 #	filter out %2b with +
 url="${url/\%2b/"+"}"
+#	filter out %3a with :
+url="${url/\%3a/":"}"
 
 #	strip filename from url
 filename="${url##*/}"
