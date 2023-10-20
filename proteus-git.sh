@@ -4,11 +4,11 @@ echo
 
 ##--------------------------------------------------------------------------
 #   @author :           aetherinox
-#   @script :           Proteus Apt Fetcher
+#   @script :           Proteus Apt Git
 #   @when   :           2023-10-19 15:24:32
-#   @url    :           https://github.com/Aetherinox/proteus-fetcher
+#   @url    :           https://github.com/Aetherinox/proteus-git
 #
-#   requires chmod +x setup.sh
+#   requires chmod +x proteus_git.sh
 #
 ##--------------------------------------------------------------------------
 
@@ -59,11 +59,11 @@ STATUS_HALT="${BOLD}${YELLOW} HALT ${NORMAL}"
 
 app_dir_home="$HOME/bin"
 app_file_this=$(basename "$0")
-app_file_proteus="${app_dir_home}/proteus-fetcher"
+app_file_proteus="${app_dir_home}/proteus-git"
 app_repo_author="Aetherinox"
-app_title="Proteus Fetcher"
+app_title="Proteus Apt Git"
 app_ver=("1" "0" "0" "0")
-app_repo="proteus-fetcher"
+app_repo="proteus-git"
 app_repo_branch="main"
 app_repo_apt="proteus-apt-repo"
 app_repo_apt_pkg="aetherinox-${app_repo_apt}-archive"
@@ -93,7 +93,7 @@ export YEAR=$(date +'%Y')
 export TIME=$(date '+%H:%M:%S')
 export ARGS=$1
 export LOGS_DIR="$app_dir/logs"
-export LOGS_FILE="$LOGS_DIR/proteus-fetcher-${DATE}.log"
+export LOGS_FILE="$LOGS_DIR/proteus-git-${DATE}.log"
 export SECONDS=0
 
 ##--------------------------------------------------------------------------
@@ -623,7 +623,7 @@ exit()
 
 envpath_add()
 {
-    local file_env=/etc/profile.d/proteus-fetcher.sh
+    local file_env=/etc/profile.d/proteus-git.sh
     if [ "$2" = "force" ] || ! echo $PATH | $(which egrep) -q "(^|:)$1($|:)" ; then
         if [ "$2" = "after" ] ; then
             echo 'export PATH="$PATH:'$1'"' | sudo tee $file_env > /dev/null

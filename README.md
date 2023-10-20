@@ -1,5 +1,5 @@
 <p align="center"><img src="https://raw.githubusercontent.com/Aetherinox/proteus-app-manager/main/docs/images/readme/banner_02.png" width="860"></p>
-<h1 align="center"><b>Proteus Apt Fetcher</b></h1>
+<h1 align="center"><b>Proteus Apt Git</b></h1>
 
 <div align="center">
 
@@ -20,12 +20,12 @@ This is an internal part of the [Proteus App Manager](https://github.com/Aetheri
 <br />
 
 ## Usage
-Download the `proteus-fetcher.sh`.
+Download the `proteus-git.sh`.
 ```shell
 wget "https://raw.githubusercontent.com/Aetherinox/proteus-fetcher/main/proteus-fetch..sh"
 ```
 
-Set the `proteus-fetcher.sh` to be executable
+Set the `proteus-git.sh` to be executable
 
 ```shell
 sudo chmod +x setup.sh
@@ -33,17 +33,17 @@ sudo chmod +x setup.sh
 
 Then run the script:
 ```shell
-./proteus-fetch.sh
+./proteus-git.sh
 ```
 
 <br />
 
-Once the script is ran for the first time, a `bin` file will be created in `/home/$USER/bin/proteus-fetcher` and another file in `/etc/profile.d/proteus-fetcher.sh`. This allows you to execute the proteus fetcher from any folder via:
+Once the script is ran for the first time, a `bin` file will be created in `/home/$USER/bin/proteus-git` and another file in `/etc/profile.d/proteus-git.sh`. This allows you to execute the proteus fetcher from any folder via:
 ```shell
-proteus-fetcher
+proteus-git
 ```
 
-You can then delete the original `proteus-fetcher.sh` file you downloaded from Github if you wish.
+You can then delete the original `proteus-git.sh` file you downloaded from Github if you wish.
 
 <br />
 
