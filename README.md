@@ -47,6 +47,16 @@ You can then delete the original `proteus-git.sh` file you downloaded from Githu
 
 <br />
 
+---
+
+<br />
+
+## Requirements
+This script requires `apt-move` to be installed. The script will automatically detect of you have apt-move installed and then install it if missing. However, you can manually install it using
+```shell
+sudo apt-get install apt-move
+```
+
 <br />
 
 ---
