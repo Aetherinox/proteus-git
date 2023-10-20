@@ -20,12 +20,12 @@ This is an internal part of the [Proteus App Manager](https://github.com/Aetheri
 <br />
 
 ## Usage
-Download the `proteus-fetch.sh`.
+Download the `proteus-fetcher.sh`.
 ```shell
 wget "https://raw.githubusercontent.com/Aetherinox/proteus-fetcher/main/proteus-fetch..sh"
 ```
 
-Set the `proteus-fetch.sh` to be executable
+Set the `proteus-fetcher.sh` to be executable
 
 ```shell
 sudo chmod +x setup.sh
