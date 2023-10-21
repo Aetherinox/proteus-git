@@ -28,7 +28,7 @@ wget "https://raw.githubusercontent.com/Aetherinox/proteus-git/main/proteus-git.
 Set the `proteus-git.sh` to be executable
 
 ```shell
-sudo chmod +x setup.sh
+sudo chmod +x proteus-git.sh
 ```
 
 Then run the script:
@@ -52,10 +52,41 @@ You can then delete the original `proteus-git.sh` file you downloaded from Githu
 <br />
 
 ## Requirements
-This script requires `apt-move` to be installed. The script will automatically detect of you have apt-move installed and then install it if missing. However, you can manually install it using
+Proteus Git requires some requirements / dependencies to be met before the script will function. You have a few options below for installing them:
+
+<br />
+
+### Option 1
+Install `apt-move` and then manually copy the files in this repo to your machine.
 ```shell
 sudo apt-get install apt-move
 ```
+
+<br />
+
+### Option 2
+Add the [Proteus Apt Repo]() to your system's sources.list by first adding the GPG key:
+```shell
+wget -qO - https://github.com/Aetherinox.gpg | sudo gpg --dearmor -o /usr/share/keyrings/aetherinox-proteus-apt-repo-archive.gpg
+```
+
+Then add the Proteus Apt repo to your list of sources:
+
+```shell
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/aetherinox-proteus-apt-repo-archive.gpg] https://raw.githubusercontent.com/Aetherinox/proteus-apt-repo/master $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/aetherinox-proteus-apt-repo-archive.list
+```
+
+Next, update your package list:
+```shell
+sudo apt update
+```
+
+Finally, install `apt-url`:
+```shell
+sudo apt install apt-url
+```
+
+Both `apt-move` and `apt-url` will be installed. `apt-url` will be placed in `/usr/bin/apt-url`
 
 <br />
 
