@@ -79,7 +79,6 @@ app_repo_email=$( git config --global --get-all user.email )
 app_repo_apt="proteus-apt-repo"
 app_repo_apt_pkg="aetherinox-${app_repo_apt}-archive"
 app_repo_url="https://github.com/${app_repo_author}/${app_repo}"
-app_repo_commit="auto-update - $NOW"
 app_mnfst="https://raw.githubusercontent.com/${app_repo_author}/${app_repo}/${app_repo_branch}/manifest.json"
 app_script="https://raw.githubusercontent.com/${app_repo_author}/${app_repo}/BRANCH/setup.sh"
 app_dir=$PWD
@@ -104,6 +103,12 @@ export ARGS=$1
 export LOGS_DIR="$app_dir/logs"
 export LOGS_FILE="$LOGS_DIR/proteus-git-${DATE}.log"
 export SECONDS=0
+
+##--------------------------------------------------------------------------
+#   vars > repo update
+##--------------------------------------------------------------------------
+
+app_repo_commit="auto-update - $NOW"
 
 ##--------------------------------------------------------------------------
 #   distro
@@ -243,8 +248,8 @@ while [ $# -gt 0 ]; do
     -v|--version)
             echo
             echo -e "  ${GREEN}${BOLD}${app_title}${NORMAL} - v$(get_version)${NORMAL}"
-            echo -e "  ${LGRAY}${BOLD}${app_repo_url}${NORMAL}"
-            echo -e "  ${LGRAY}${BOLD}${OS} | ${OS_VER}${NORMAL}"
+            echo -e "  ${GREYL}${BOLD}${app_repo_url}${NORMAL}"
+            echo -e "  ${GREYL}${BOLD}${OS} | ${OS_VER}${NORMAL}"
             echo
             exit 1
             ;;
@@ -964,11 +969,9 @@ lst_packages=(
     'libnginx-mod-rtmp'
     'libnginx-mod-stream-geoip'
     'lsb-base'
-    'mysql-client-core'
-    'mysql-client-core'
+    'lz4'
     'mysql-client'
     'mysql-common'
-    'mysql-server-core'
     'mysql-server'
     'network-manager-config-connectivity-ubuntu'
     'network-manager-dev'
@@ -991,6 +994,98 @@ lst_packages=(
     'open-vm-tools-desktop'
     'open-vm-tools-dev'
     'open-vm-tools'
+    'php-all-dev'
+    'php-amqp'
+    'php-amqplib'
+    'php-apcu-all-dev'
+    'php-apcu'
+    'php-ast-all-dev'
+    'php-ast'
+    'php-bacon-qr-code'
+    'php-bcmath'
+    'php-brick-math'
+    'php-brick-varexporter'
+    'php-bz2'
+    'php-cas'
+    'php-cgi'
+    'php-cli'
+    'php-code-lts-u2f-php-server'
+    'php-common'
+    'php-crypt-gpg'
+    'php-curl'
+    'php-db'
+    'php-dba'
+    'php-decimal'
+    'php-dev'
+    'php-ds-all-dev'
+    'php-ds'
+    'php-email-validator'
+    'php-embed'
+    'php-enchant'
+    'php-excimer'
+    'php-faker'
+    'php-fpm'
+    'php-fxsl'
+    'php-gd'
+    'php-gearman'
+    'php-gettext-languages'
+    'php-gmagick-all-dev'
+    'php-gmagick'
+    'php-gmp'
+    'php-gnupg-all-dev'
+    'php-gnupg'
+    'php-gnupg'
+    'php-grpc'
+    'php-http'
+    'php-igbinary'
+    'php-imagick'
+    'php-imap'
+    'php-inotify'
+    'php-interbase'
+    'php-intl'
+    'php-ldap'
+    'php-mailparse'
+    'php-maxminddb'
+    'php-mbstring'
+    'php-mcrypt'
+    'php-memcache'
+    'php-memcached'
+    'php-mongodb'
+    'php-msgpack'
+    'php-mysql'
+    'php-oauth'
+    'php-odbc'
+    'php-pcov'
+    'php-pgsql'
+    'php-phpdbg'
+    'php-ps'
+    'php-pspell'
+    'php-psr'
+    'php-raphf'
+    'php-readline'
+    'php-redis'
+    'php-rrd'
+    'php-smbclient'
+    'php-snmp'
+    'php-soap'
+    'php-solr'
+    'php-sqlite3'
+    'php-ssh2'
+    'php-stomp'
+    'php-sybase'
+    'php-tideways'
+    'php-tidy'
+    'php-uopz'
+    'php-uploadprogress'
+    'php-uuid'
+    'php-xdebug'
+    'php-xml'
+    'php-xmlrpc'
+    'php-yac'
+    'php-yaml'
+    'php-zip'
+    'php-zmq'
+    'php'
     'wget'
 )
 
@@ -1053,21 +1148,11 @@ show_header()
     printf "%-50s %-5s\n" "${TIME}      Successfully loaded ${app_i} packages" | tee -a "${LOGS_FILE}" >/dev/null
     printf "%-50s %-5s\n" "${TIME}      Waiting for user input ..." | tee -a "${LOGS_FILE}" >/dev/null
 
-    echo -e "  ${BOLD}${NORMAL}Waiting on selection ..." >&2
     echo
 }
 
 ##--------------------------------------------------------------------------
-#   Selection Menu
-#
-#   allow users to select the desired option manually.
-#   this may not be fully integrated yet.
-#
-#   latest version
-#       apt-get download --print-uris package | cut -d' ' -f1
-#
-#   specific version
-#       apt-get download --print-uris package=version | cut -d' ' -f1
+#   Start App
 ##--------------------------------------------------------------------------
 
 app_start()
@@ -1075,17 +1160,49 @@ app_start()
 
     show_header
 
-    begin "Downloading Packages"
-    echo
+    ##--------------------------------------------------------------------------
+    #   set seconds for duration
+    ##--------------------------------------------------------------------------
+
+    export SECONDS=0
+
+    ##--------------------------------------------------------------------------
+    #   pull all changes from github
+    ##--------------------------------------------------------------------------
+
+    git pull
+
+    ##--------------------------------------------------------------------------
+    #   check for reprepro
+    ##--------------------------------------------------------------------------
 
     if [ -x "$(command -v reprepro)" ]; then
         bRep=true
     fi
 
+    ##--------------------------------------------------------------------------
+    #   sort alphabetically
+    ##--------------------------------------------------------------------------
+
     IFS=$'\n' lst_pkgs_sorted=($(sort <<<"${lst_packages[*]}"))
     unset IFS
 
+    ##--------------------------------------------------------------------------
+    #   add countdown to the num of packages to install
+    #   add +1 so we're not hitting 0
+    ##--------------------------------------------------------------------------
+
+    count=${#lst_pkgs_sorted[@]}
+    (( count++ ))
+
+    begin "Downloading Packages [ $count ]"
+    echo
+
     mkdir -p ${app_dir_storage}/{all,amd64,arm64}
+
+    ##--------------------------------------------------------------------------
+    #   loop sorted packages
+    ##--------------------------------------------------------------------------
 
     for i in "${!lst_pkgs_sorted[@]}"; do
         pkg=${lst_pkgs_sorted[$i]}
@@ -1098,18 +1215,21 @@ app_start()
             #   package:arch
             local pkg_arch="$pkg:$arch"
 
+            ##--------------------------------------------------------------------------
             #   download "package:arch"
-            #
+            #   
             #   originally apt-get download was utilized, however it has a weird bug
             #   where certain files saved will have a colon in the filename, which
             #   will set the filename to include %3a
-            #
+            #   
             #   to combat this, we will use wget to download the file since this
             #   doesnt seem to have the issue.
             #   apt download "$pkg_arch" >> $LOGS_FILE 2>&1
-
+            #   
             #   http://us.archive.ubuntu.com/ubuntu/pool/universe/d/<package>/<package>_1.x.x-x_<arch>.deb
             #   app_url=$(sudo ./apt-url "$pkg_arch" | tail -n 1 )
+            #   
+            ##--------------------------------------------------------------------------
 
             #   <package>_1.x.x-x_<arch>.deb
             query=$( sudo ./apt-url "$pkg_arch" )
@@ -1124,8 +1244,13 @@ app_start()
             wget "$app_url" -q
 
             if [[ -f "$app_dir/$app_filename" ]]; then
+
+                ##--------------------------------------------------------------------------
+                #   architecture > all
+                ##--------------------------------------------------------------------------
+
                 if [[ "$arch" == "all" ]] && [[ $app_filename == *all.deb ]]; then
-                    printf '%-50s %-5s' "    |--- Get ${app_filename:0:35}..." "" 1>&2
+                    printf ' %-25s %-60s %-5s' "    ${GREYL}|---${NORMAL} ${YELLOW}[ $count ]${NORMAL}" "${FUCHSIA}${BOLD}Get ${app_filename:0:35}...${NORMAL}" "" 1>&2
                     mv "$app_dir/$app_filename" "$app_dir_storage/all/"
                     echo -e "[ ${STATUS_OK} ]"
 
@@ -1140,8 +1265,14 @@ app_start()
                             includedeb $sys_code "$deb_package"
                     fi
 
+                    echo
+
+                ##--------------------------------------------------------------------------
+                #   architecture > amd64
+                ##--------------------------------------------------------------------------
+
                 elif [[ "$arch" == "amd64" ]] && [[ $app_filename == *amd64.deb ]]; then
-                    printf '%-50s %-5s' "    |--- Get ${app_filename:0:35}..." "" 1>&2
+                    printf ' %-25s %-60s %-5s' "    ${GREYL}|---${NORMAL} ${YELLOW}[ $count ]${NORMAL}" "${FUCHSIA}${BOLD}Get ${app_filename:0:35}...${NORMAL}" "" 1>&2
                     mv "$app_dir/$app_filename" "$app_dir_storage/amd64/"
                     echo -e "[ ${STATUS_OK} ]"
 
@@ -1156,8 +1287,14 @@ app_start()
                             includedeb $sys_code "$deb_package"
                     fi
 
+                    echo
+
+                ##--------------------------------------------------------------------------
+                #   architecture > arm64
+                ##--------------------------------------------------------------------------
+
                 elif [[ "$arch" == "arm64" ]] && [[ $app_filename == *arm64.deb ]]; then
-                    printf '%-50s %-5s' "    |--- Get ${app_filename:0:35}..." "" 1>&2
+                    printf ' %-25s %-60s %-5s' "    ${GREYL}|---${NORMAL} ${YELLOW}[ $count ]${NORMAL}" "${FUCHSIA}${BOLD}Get ${app_filename:0:35}...${NORMAL}" "" 1>&2
                     mv "$app_dir/$app_filename" "$app_dir_storage/arm64/"
                     echo -e "[ ${STATUS_OK} ]"
 
@@ -1172,20 +1309,39 @@ app_start()
                             includedeb $sys_code "$deb_package"
                     fi
 
+                    echo
+
+                ##--------------------------------------------------------------------------
+                #   certain packages will output an *amd64 or *arm64 file when calling
+                #   the "all" architecture, which means you'll have double the files.
+                #
+                #   delete the left-over files since we already have them.
+                ##--------------------------------------------------------------------------
+
                 else
                     rm "$app_dir/$app_filename"
                 fi
 
-                sleep 2
+                sleep 1
 
             fi
         done
 
+        (( count-- ))
+        echo
+
     done
 
+    ##--------------------------------------------------------------------------
+    #   .app folder
+    ##--------------------------------------------------------------------------
 
     local manifest_dir=$app_dir/.app/
     mkdir -p            $manifest_dir
+
+    ##--------------------------------------------------------------------------
+    #   .app folder > create app.json
+    ##--------------------------------------------------------------------------
 
 tee $manifest_dir/app.json >/dev/null <<EOF
 {
@@ -1194,7 +1350,8 @@ tee $manifest_dir/app.json >/dev/null <<EOF
     "author":           "${app_repo_author}",
     "description":      "${app_about}",
     "url":              "${app_repo_url}",
-    "last_update":      "${DATE_TS}"
+    "last_update":      "${NOW}",
+    "last_update_ts":   "${DATE_TS}"
 }
 EOF
 
@@ -1206,6 +1363,10 @@ EOF
     tree_output=$( tree -a -I ".git" --dirsfirst )
     tree -a -I ".git" --dirsfirst -J > $manifest_dir/tree.json
     #   tree -a --dirsfirst -I '.git' -H https://github.com/${app_repo_author}/${app_repo}/src/branch/$app_repo_branch/ -o $app_dir/.data/tree.html
+
+    ##--------------------------------------------------------------------------
+    #   tree.md content
+    ##--------------------------------------------------------------------------
 
 tee $app_dir/tree.md >/dev/null <<EOF
 # Repo Tree
@@ -1221,7 +1382,6 @@ Last generated on \`$NOW\`
 $tree_output
 \`\`\`
 EOF
-
 
     sleep 5
 
@@ -1242,23 +1402,38 @@ EOF
     git config --global user.name $app_repo_user
     git config --global user.email $app_repo_email
 
-    sleep 2
+    sleep 1
 
     git branch -m $app_repo_branch
     git add --all
     git add -u
 
-    sleep 2
+    sleep 1
 
     git commit -S -m "$app_repo_commit"
 
-    sleep 2
+    sleep 1
 
     git push -u origin $app_repo_branch
 
-    finish
+    ##--------------------------------------------------------------------------
+    #   duration elapsed
+    ##--------------------------------------------------------------------------
 
+    duration=$SECONDS
+    elapsed="$(($duration / 60)) minutes and $(($duration % 60)) seconds elapsed."
+    printf "%-57s %-15s\n\n\n\n" "${TIME}      ${elapsed}" | tee -a "${LOGS_FILE}" >/dev/null
+    printf '%-60s %-5s' "    ${elapsed}" ""
+
+    ##--------------------------------------------------------------------------
+    #   close logs, kill spinner, and finish process
+    ##--------------------------------------------------------------------------
+
+    finish
     Logs_Finish
+
+    delay 10
+
     exit
 }
 
