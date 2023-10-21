@@ -12,6 +12,12 @@ echo
 #
 ##--------------------------------------------------------------------------
 
+# require git
+if ! [ -x "$(command -v git)" ]; then
+    sudo apt-get update -y -q >/dev/null 2>&1
+    sudo apt-get install git -y -qq >/dev/null 2>&1
+fi
+
 ##--------------------------------------------------------------------------
 #   vars > colors
 #
@@ -64,51 +70,40 @@ app_file_this=$(basename "$0")
 app_file_proteus="${app_dir_home}/proteus-git"
 app_repo_author="Aetherinox"
 app_title="Proteus Apt Git"
+app_about="Internal system to Proteus App Manager which grabs debian packages."
 app_ver=("1" "0" "0" "0")
 app_repo="proteus-git"
 app_repo_branch="main"
+app_repo_user=$( git config --global --get-all user.name )
+app_repo_email=$( git config --global --get-all user.email )
 app_repo_apt="proteus-apt-repo"
 app_repo_apt_pkg="aetherinox-${app_repo_apt}-archive"
 app_repo_url="https://github.com/${app_repo_author}/${app_repo}"
+app_repo_commit="auto-update - $NOW"
 app_mnfst="https://raw.githubusercontent.com/${app_repo_author}/${app_repo}/${app_repo_branch}/manifest.json"
 app_script="https://raw.githubusercontent.com/${app_repo_author}/${app_repo}/BRANCH/setup.sh"
 app_dir=$PWD
+app_dir_wd=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+app_dir_repo="incoming/autodownloader/${sys_code}"
 app_dir_storage="$app_dir/incoming/autodownloader/${sys_code}"
 app_pid_spin=0
 app_pid=$BASHPID
 app_queue_url=()
 app_i=0
 
-
-pkg_arch="kgpg:arm64"
-
-# apt-get download kgpg:arm64
-# sudo ./apt-url "kgpg:arm64"
-
-#   originally apt-get download was utilized, however it has a weird bug
-#   where certain files saved will have a colon in the filename, which
-#   will set the filename to include %3a
-#
-#   to combat this, we will use wget to download the file since this
-#   doesnt seem to have the issue.
-
 ##--------------------------------------------------------------------------
 #   exports
 ##--------------------------------------------------------------------------
 
-export DATE=$(date '+%Y%m%d')
+export DATE=$(date '+%d%m%Y')
+export DATE_TS=$(date +%s)
 export YEAR=$(date +'%Y')
 export TIME=$(date '+%H:%M:%S')
+export NOW=$(date '+%m.%d.%Y %H:%M:%S')
 export ARGS=$1
 export LOGS_DIR="$app_dir/logs"
 export LOGS_FILE="$LOGS_DIR/proteus-git-${DATE}.log"
 export SECONDS=0
-
-##--------------------------------------------------------------------------
-#   vars > general
-##--------------------------------------------------------------------------
-
-gui_about="Internal system to Proteus App Manager which grabs debian packages."
 
 ##--------------------------------------------------------------------------
 #   distro
@@ -209,8 +204,6 @@ opt_usage()
     exit 1
 }
 
-OPT_APPS_CLI=()
-
 while [ $# -gt 0 ]; do
   case "$1" in
     -d|--dev)
@@ -231,12 +224,6 @@ while [ $# -gt 0 ]; do
 
                 exit 1
             fi
-            ;;
-
-    -i*|--install*)
-            if [[ "$1" != *=* ]]; then shift; fi
-            OPT_APP="${1#*=}"
-            OPT_APPS_CLI+=("${OPT_APP}")
             ;;
 
     -n|--nullrun)
@@ -935,37 +922,6 @@ app_setup()
 app_setup
 
 ##--------------------------------------------------------------------------
-#   func > notify-send
-#
-#   because this script requires some actions as sudo, notify-send will not
-#   work because it has no clue which user to send the notification to.
-#
-#   use this as a bypass to figure out what user is logged in.
-#
-#   could use zenity for this, but notifications are limited.
-#
-#   NOTE:   must be placed after func app_setup() otherwise notify-send
-#           will not be detected as installed.
-##--------------------------------------------------------------------------
-
-notify-send()
-{
-    # func name
-    fn_name=${FUNCNAME[0]}
-
-    # get name of display in use
-    local display=":$(ls /tmp/.X11-unix/* | sed 's#/tmp/.X11-unix/X##' | head -n 1)"
-
-    # get user using display
-    local user=$(who | grep '('$display')' | awk '{print $1}' | head -n 1)
-
-    # detect id of user
-    local uid=$(id -u $user)
-
-    sudo -u $user DISPLAY=$display DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$uid/bus $fn_name "$@"
-}
-
-##--------------------------------------------------------------------------
 #   output some logging
 ##--------------------------------------------------------------------------
 
@@ -980,18 +936,18 @@ notify-send()
 ##--------------------------------------------------------------------------
 
 lst_packages=(
-    'mysql-server'
-    'mysql-common'
-    'mysql-client'
-    'nginx'
-    'nginx-core'
-    'nginx-common'
-    'nginx-doc'
-    'nginx-confgen'
-    'nginx-dev'
-    'nginx-extras'
-    'nginx-full'
-    'nginx-light'
+    'adduser'
+    'apt-move'
+    'apt-utils'
+    'dialog'
+    'gnome-keyring'
+    'gnome-keysign'
+    'gnome-shell-extension-manager'
+    'gpg'
+    'gpgconf'
+    'gpgv'
+    'keyutils'
+    'kgpg'
     'libnginx-mod-http-auth-pam'
     'libnginx-mod-http-cache-purge'
     'libnginx-mod-http-dav-ext'
@@ -1007,22 +963,13 @@ lst_packages=(
     'libnginx-mod-nchan'
     'libnginx-mod-rtmp'
     'libnginx-mod-stream-geoip'
-    'dialog'
-    'wget'
-    'apt-move'
-    'apt-utils'
-    'gpg'
-    'gpgv'
-    'kgpg'
-    'gpgconf'
-    'keyutils'
-    'adduser'
-    'debconf'
     'lsb-base'
-    'gnome-keyring'
-    'gnome-keysign'
-    'gnome-shell-extension-manager'
-    'libc6'
+    'mysql-client-core'
+    'mysql-client-core'
+    'mysql-client'
+    'mysql-common'
+    'mysql-server-core'
+    'mysql-server'
     'network-manager-config-connectivity-ubuntu'
     'network-manager-dev'
     'network-manager-gnome'
@@ -1032,9 +979,19 @@ lst_packages=(
     'network-manager-pptp'
     'network-manager'
     'networkd-dispatcher'
+    'nginx-common'
+    'nginx-confgen'
+    'nginx-core'
+    'nginx-dev'
+    'nginx-doc'
+    'nginx-extras'
+    'nginx-full'
+    'nginx-light'
+    'nginx'
     'open-vm-tools-desktop'
     'open-vm-tools-dev'
     'open-vm-tools'
+    'wget'
 )
 
 ##--------------------------------------------------------------------------
@@ -1121,6 +1078,10 @@ app_start()
     begin "Downloading Packages"
     echo
 
+    if [ -x "$(command -v reprepro)" ]; then
+        bRep=true
+    fi
+
     IFS=$'\n' lst_pkgs_sorted=($(sort <<<"${lst_packages[*]}"))
     unset IFS
 
@@ -1155,6 +1116,11 @@ app_start()
             app_filename=$( echo "$query" | head -n 1; )
             app_url=$( echo "$query" | tail -n 1; )
 
+            sudo pkill -9 "reprepro"
+            if [ -f "$app_dir/db/lockfile" ]; then
+                sudo rm "$app_dir/db/lockfile"
+            fi
+
             wget "$app_url" -q
 
             if [[ -f "$app_dir/$app_filename" ]]; then
@@ -1162,21 +1128,133 @@ app_start()
                     printf '%-50s %-5s' "    |--- Get ${app_filename:0:35}..." "" 1>&2
                     mv "$app_dir/$app_filename" "$app_dir_storage/all/"
                     echo -e "[ ${STATUS_OK} ]"
+
+                    if [ -n "${bRep}" ]; then
+                        #   full path to deb package
+                        deb_package="$app_dir_repo/$arch/$app_filename"
+                        echo $deb_package
+                        reprepro -V \
+                            --section utils \
+                            --component main \
+                            --priority 0 \
+                            includedeb $sys_code "$deb_package"
+                    fi
+
                 elif [[ "$arch" == "amd64" ]] && [[ $app_filename == *amd64.deb ]]; then
                     printf '%-50s %-5s' "    |--- Get ${app_filename:0:35}..." "" 1>&2
                     mv "$app_dir/$app_filename" "$app_dir_storage/amd64/"
                     echo -e "[ ${STATUS_OK} ]"
+
+                    if [ -n "${bRep}" ]; then
+                        #   full path to deb package
+                        deb_package="$app_dir_repo/$arch/$app_filename"
+                        reprepro -V \
+                            --section utils \
+                            --component main \
+                            --priority 0 \
+                            --architecture amd64 \
+                            includedeb $sys_code "$deb_package"
+                    fi
+
                 elif [[ "$arch" == "arm64" ]] && [[ $app_filename == *arm64.deb ]]; then
                     printf '%-50s %-5s' "    |--- Get ${app_filename:0:35}..." "" 1>&2
                     mv "$app_dir/$app_filename" "$app_dir_storage/arm64/"
                     echo -e "[ ${STATUS_OK} ]"
+
+                    if [ -n "${bRep}" ]; then
+                        #   full path to deb package
+                        deb_package="$app_dir_repo/$arch/$app_filename"
+                        reprepro -V \
+                            --section utils \
+                            --component main \
+                            --priority 0 \
+                            --architecture arm64 \
+                            includedeb $sys_code "$deb_package"
+                    fi
+
                 else
                     rm "$app_dir/$app_filename"
                 fi
+
+                sleep 2
+
             fi
         done
 
     done
+
+
+    local manifest_dir=$app_dir/.app/
+    mkdir -p            $manifest_dir
+
+tee $manifest_dir/app.json >/dev/null <<EOF
+{
+    "name":             "${app_title}",
+    "version":          "$(get_version)",
+    "author":           "${app_repo_author}",
+    "description":      "${app_about}",
+    "url":              "${app_repo_url}",
+    "last_update":      "${DATE_TS}"
+}
+EOF
+
+    ##--------------------------------------------------------------------------
+    #   tree
+    ##--------------------------------------------------------------------------
+
+    #    tree -a -I ".git" --dirsfirst > $manifest_dir/tree.txt
+    tree_output=$( tree -a -I ".git" --dirsfirst )
+    tree -a -I ".git" --dirsfirst -J > $manifest_dir/tree.json
+    #   tree -a --dirsfirst -I '.git' -H https://github.com/${app_repo_author}/${app_repo}/src/branch/$app_repo_branch/ -o $app_dir/.data/tree.html
+
+tee $app_dir/tree.md >/dev/null <<EOF
+# Repo Tree
+Last generated on \`$NOW\`
+
+<br />
+
+---
+
+<br />
+
+\`\`\`
+$tree_output
+\`\`\`
+EOF
+
+
+    sleep 5
+
+    ##--------------------------------------------------------------------------
+    #   upload to github
+    ##--------------------------------------------------------------------------
+
+    # see if repo directory is in safelist for git
+    if git config --global --get-all safe.directory | grep -q "$app_dir"; then
+        bFoundSafe=true
+    fi
+
+    # if new repo, add to safelist
+    if ! [ $bFoundSafe ]; then
+        git config --global --add safe.directory $app_dir
+    fi
+
+    git config --global user.name $app_repo_user
+    git config --global user.email $app_repo_email
+
+    sleep 2
+
+    git branch -m $app_repo_branch
+    git add --all
+    git add -u
+
+    sleep 2
+
+    git commit -S -m "$app_repo_commit"
+
+    sleep 2
+
+    git push -u origin $app_repo_branch
 
     finish
 
