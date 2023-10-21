@@ -28,7 +28,7 @@ wget "https://raw.githubusercontent.com/Aetherinox/proteus-git/main/proteus-git.
 Set the `proteus-git.sh` to be executable
 
 ```shell
-sudo chmod +x setup.sh
+sudo chmod +x proteus-git.sh
 ```
 
 Then run the script:
