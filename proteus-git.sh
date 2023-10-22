@@ -1,6 +1,13 @@
 #!/bin/bash
-PATH="/bin:/usr/bin:/sbin:/usr/sbin"
+PATH="/bin:/usr/bin:/sbin:/usr/sbin:/home/$USER/bin"
 echo 
+
+##--------------------------------------------------------------------------
+#   load secrets file to handle Github rate limiting via a PAF.
+#   managed via https://github.com/settings/tokens?type=beta
+##--------------------------------------------------------------------------
+
+. ./secrets.sh
 
 ##--------------------------------------------------------------------------
 #   @author :           aetherinox
@@ -89,6 +96,20 @@ app_pid_spin=0
 app_pid=$BASHPID
 app_queue_url=()
 app_i=0
+
+##--------------------------------------------------------------------------
+#   lists > github repos
+#
+#   a list of github repos to find updates from
+##--------------------------------------------------------------------------
+
+lst_github=(
+    'obsidianmd/obsidian-releases'
+    'AppOutlet/AppOutlet'
+    'bitwarden/clients'
+    'shiftkey/desktop'
+    'FreeTubeApp/FreeTube'
+)
 
 ##--------------------------------------------------------------------------
 #   exports
@@ -1330,6 +1351,42 @@ app_start()
         (( count-- ))
         echo
 
+    done
+
+    ##--------------------------------------------------------------------------
+    #   update github repo scripts
+    ##--------------------------------------------------------------------------
+
+    for i in "${!lst_github[@]}"
+    do
+        repo=${lst_github[$i]}
+
+        lst_releases=($( lastversion --exclude sha256 --assets $repo --filter deb$ ))
+        for key in "${!lst_releases[@]}"
+        do
+            repo_file_url=${lst_releases[$key]}
+            app_filename="${repo_file_url##*/}"
+
+            check=`echo $app_filename | grep '\armhf\|armv7l'`
+            if [ -n "$check" ]; then
+                continue
+            fi
+
+            echo "DOWNLOAD           $repo_file_url"
+            echo "FILENAME           $app_filename"
+
+            wget "$repo_file_url" -q
+
+            if [ -f "$app_dir/$app_filename" ]; then
+                if [[ $app_filename == *all.deb ]]; then
+                    mv "$app_dir/$app_filename" "$app_dir_storage/all/"
+                elif [[ $app_filename == *amd64.deb ]]; then
+                    mv "$app_dir/$app_filename" "$app_dir_storage/amd64/"
+                elif [[ $app_filename == *arm64.deb ]]; then
+                    mv "$app_dir/$app_filename" "$app_dir_storage/arm64/"
+                fi
+            fi
+        done
     done
 
     ##--------------------------------------------------------------------------
