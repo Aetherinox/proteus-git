@@ -1253,7 +1253,7 @@ app_start()
             ##--------------------------------------------------------------------------
 
             #   <package>_1.x.x-x_<arch>.deb
-            query=$( sudo ./apt-url "$pkg_arch" )
+            query=$( sudo apt-url "$pkg_arch" )
             app_filename=$( echo "$query" | head -n 1; )
             app_url=$( echo "$query" | tail -n 1; )
 
@@ -1357,11 +1357,25 @@ app_start()
     #   update github repo scripts
     ##--------------------------------------------------------------------------
 
+    count=${#lst_github[@]}
+
+    begin "Downloading Github Packages [ $count ]"
+    echo
+
+    mkdir -p ${app_dir_storage}/{all,amd64,arm64}
+
+    #   loop github URLs
     for i in "${!lst_github[@]}"
     do
         repo=${lst_github[$i]}
 
-        lst_releases=($( lastversion --exclude sha256 --assets $repo --filter deb$ ))
+        lst_releases=($( lastversion --pre --assets $repo --filter deb$ ))
+
+        if [ -z ${count_git} ]; then
+            count_git=${#lst_releases[@]}
+        fi
+
+        #   loop each downloadable package
         for key in "${!lst_releases[@]}"
         do
             repo_file_url=${lst_releases[$key]}
@@ -1372,21 +1386,77 @@ app_start()
                 continue
             fi
 
-            echo "DOWNLOAD           $repo_file_url"
-            echo "FILENAME           $app_filename"
-
             wget "$repo_file_url" -q
 
-            if [ -f "$app_dir/$app_filename" ]; then
-                if [[ $app_filename == *all.deb ]]; then
-                    mv "$app_dir/$app_filename" "$app_dir_storage/all/"
-                elif [[ $app_filename == *amd64.deb ]]; then
-                    mv "$app_dir/$app_filename" "$app_dir_storage/amd64/"
-                elif [[ $app_filename == *arm64.deb ]]; then
-                    mv "$app_dir/$app_filename" "$app_dir_storage/arm64/"
+            for j in "${!lst_arch[@]}"; do
+                #   returns arch
+                #   amd64, arm64, i386, all
+                arch=${lst_arch[$j]}
+
+                if [ -f "$app_dir/$app_filename" ]; then
+                    if [[ "$arch" == "all" ]] && [[ $app_filename == *all.deb || $app_filename == *all*.deb ]]; then
+                        printf ' %-25s %-60s %-5s' "    ${GREYL}|---${NORMAL}" "${FUCHSIA}${BOLD}Get ${app_filename:0:35}...${NORMAL}" "" 1>&2
+                        mv "$app_dir/$app_filename" "$app_dir_storage/all/"
+                        echo -e "[ ${STATUS_OK} ]"
+
+                        if [ -n "${bRep}" ]; then
+                            #   full path to deb package
+                            deb_package="$app_dir_repo/$arch/$app_filename"
+                            echo "$sys_code $deb_package"
+                            reprepro -V \
+                                --section utils \
+                                --component main \
+                                --priority 0 \
+                                includedeb $sys_code "$deb_package"
+                        fi
+
+                        echo
+
+                    elif [[ "$arch" == "amd64" ]] && [[ $app_filename == *amd64.deb || $app_filename == *amd64*.deb ]]; then
+                        printf ' %-25s %-60s %-5s' "    ${GREYL}|---${NORMAL}" "${FUCHSIA}${BOLD}Get ${app_filename:0:35}...${NORMAL}" "" 1>&2
+                        mv "$app_dir/$app_filename" "$app_dir_storage/amd64/"
+                        echo -e "[ ${STATUS_OK} ]"
+
+                        if [ -n "${bRep}" ]; then
+                            #   full path to deb package
+                            deb_package="$app_dir_repo/$arch/$app_filename"
+                            echo "$sys_code $deb_package"
+                            reprepro -V \
+                                --section utils \
+                                --component main \
+                                --priority 0 \
+                                --architecture amd64 \
+                                includedeb $sys_code "$deb_package"
+                        fi
+
+                        echo
+
+                    elif [[ "$arch" == "arm64" ]] && [[ $app_filename == *arm64.deb || $app_filename == *arm64*.deb ]]; then
+                        printf ' %-25s %-60s %-5s' "    ${GREYL}|---${NORMAL}" "${FUCHSIA}${BOLD}Get ${app_filename:0:35}...${NORMAL}" "" 1>&2
+                        mv "$app_dir/$app_filename" "$app_dir_storage/arm64/"
+                        echo -e "[ ${STATUS_OK} ]"
+
+                        if [ -n "${bRep}" ]; then
+                            #   full path to deb package
+                            deb_package="$app_dir_repo/$arch/$app_filename"
+                            echo "$sys_code $deb_package"
+                            reprepro -V \
+                                --section utils \
+                                --component main \
+                                --priority 0 \
+                                --architecture arm64 \
+                                includedeb $sys_code "$deb_package"
+                        fi
+
+                        echo
+
+                    fi
                 fi
-            fi
+            done
         done
+
+        echo
+
     done
 
     ##--------------------------------------------------------------------------
