@@ -1,6 +1,5 @@
 <p align="center"><img src="https://raw.githubusercontent.com/Aetherinox/proteus-app-manager/main/docs/images/readme/banner_02.png" width="860"></p>
-<h1 align="center"><b>Proteus Apt Git</b></h1>
-<h3 align="center"><b>📁 .gpg</b></h3>
+<h1 align="center"><b>📁 /.gpg</b></h1>
 
 <div align="center">
 
