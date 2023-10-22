@@ -90,8 +90,8 @@ app_mnfst="https://raw.githubusercontent.com/${app_repo_author}/${app_repo}/${ap
 app_script="https://raw.githubusercontent.com/${app_repo_author}/${app_repo}/BRANCH/setup.sh"
 app_dir=$PWD
 app_dir_wd=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-app_dir_repo="incoming/autodownloader/${sys_code}"
-app_dir_storage="$app_dir/incoming/autodownloader/${sys_code}"
+app_dir_repo="incoming/proteus-git/${sys_code}"
+app_dir_storage="$app_dir/incoming/proteus-git/${sys_code}"
 app_pid_spin=0
 app_pid=$BASHPID
 app_queue_url=()
@@ -1369,7 +1369,7 @@ app_start()
     do
         repo=${lst_github[$i]}
 
-        lst_releases=($( lastversion --pre --assets $repo --filter deb$ ))
+        lst_releases=($( lastversion --pre --assets $repo --filter "(?:\b|_)(?:amd64|arm64)\b.*\.deb$" ))
 
         if [ -z ${count_git} ]; then
             count_git=${#lst_releases[@]}
@@ -1381,6 +1381,7 @@ app_start()
             repo_file_url=${lst_releases[$key]}
             app_filename="${repo_file_url##*/}"
 
+            #   no longer needed
             check=`echo $app_filename | grep '\armhf\|armv7l'`
             if [ -n "$check" ]; then
                 continue
