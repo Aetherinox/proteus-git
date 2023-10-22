@@ -936,7 +936,7 @@ app_setup()
     #   add env path /HOME/USER/bin/
     ##--------------------------------------------------------------------------
 
-    envpath_add $HOME/bin
+    envpath_add '$HOME/bin'
 
     if [ -n "$ReqTitle" ]; then
         title "Retry: ${1}"
