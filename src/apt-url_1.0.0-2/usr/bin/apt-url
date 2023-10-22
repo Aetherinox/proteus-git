@@ -3,7 +3,7 @@
 ##--------------------------------------------------------------------------
 #   @author :           aetherinox
 #   @script :           Proteus apt-url
-#   @when   :           2023-10-19 15:24:32
+#   @when   :           2023-10-21 15:33:31
 #   @url    :           https://github.com/Aetherinox/proteus-git
 #
 #   requires chmod +x apt-url
@@ -23,8 +23,8 @@ sudo apt-get clean
 ##--------------------------------------------------------------------------
 
 if [ ! -f $FETCH ]; then
-	echo 'Install apt-move, as:'
-	echo ' # apt-get install apt-move'
+	echo 'apt-url requires apt-move'
+	echo ' Install with: apt-get install apt-move'
 	exit 2
 fi
 
