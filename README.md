@@ -69,6 +69,7 @@ Proteus Git has requirements that need met before the script will function. You 
 | `apt-move` | <br /> Available from [Proteus Apt Repo](https://github.com/Aetherinox/proteus-apt-repo) <br /> <br />  | `sudo apt install apt-move` |
 | `lastversion` | <br /> Python script installed via `pip`. <br /> Info can be viewed on [github page](https://github.com/dvershinin/lastversion) <br /> <br /> | `pip install lastversion` |
 | `reprepro` | <br /> Installed via `proteus apt repo`. <br /> Requires `v5.4.2-1` <br /> <br /> | `sudo apt install lastversion` |
+| `tree` | <br /> Output directories as tree <br /> Available from [Proteus Apt Repo](https://github.com/Aetherinox/proteus-apt-repo) <br /> <br /> | `sudo apt install tree` |
 
 <br />
 
@@ -203,3 +204,70 @@ Finally, run in terminal
 sudo apt update
 ```
 The new repository is now available to use.
+
+<br />
+
+---
+
+<br />
+
+## Configure GPG
+Ensure you have GPG configured so that pushes and packages can be signed.
+
+<br />
+
+### Ubuntu Passwords & Keys
+Import your GPG key into `Passwords & Keys` or whatever program you utilize to store GPG keys.
+
+<p align="center"><img style="width: 80%;text-align: center;" src="https://github.com/Aetherinox/proteus-git/assets/118329232/98c75405-1709-4878-b280-384692c1d6b3"></p>
+
+<br />
+
+### GPG / Gnupg
+Ensure you cache your session by creating the file `/home/$USER/.gnupg/gpg-agent.conf`
+
+Add the following
+```shell
+enable-putty-support
+enable-ssh-support
+use-standard-socket
+default-cache-ttl-ssh 60
+max-cache-ttl-ssh 120
+default-cache-ttl 28800 # gpg key cache time
+max-cache-ttl 28800 # max gpg key cache time
+pinentry-program "/usr/bin/pinentry"
+allow-loopback-pinentry
+allow-preset-passphrase
+pinentry-timeout 0
+```
+
+<br />
+
+### .gitconfig
+Open `/home/$USER/.gitconfig` and ensure your `.gitconfig` is similar to the following:
+
+```
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+[user]
+	name = Username
+	email = you@address.com
+	signingKey = BCA07641EE3FCD7BC5585281488D518ABD3DC629
+[commit]
+	gpgsign = true
+[gpg]
+	program = gpg
+[safe]
+	directory = /home/$USER/Repos/repo-name
+[tag]
+	forceSignAnnotated = true
+[credential]
+	helper = store
+```
+
+<br />
+
+Once all this is done, you can launch `proteus-git` and start running the package downloader.

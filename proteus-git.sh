@@ -129,7 +129,7 @@ export SECONDS=0
 #   vars > repo update
 ##--------------------------------------------------------------------------
 
-app_repo_commit="auto-update - $NOW"
+app_repo_commit="auto-update [ $sys_code ] @ $NOW"
 
 ##--------------------------------------------------------------------------
 #   distro
