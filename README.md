@@ -68,6 +68,7 @@ Proteus Git has requirements that need met before the script will function. You 
 | `apt-url` | <br /> Available from [Proteus Apt Repo](https://github.com/Aetherinox/proteus-apt-repo) <br /> Installing this also installs `apt-move` <br /> <br /> | `sudo apt install apt-url` |
 | `apt-move` | <br /> Available from [Proteus Apt Repo](https://github.com/Aetherinox/proteus-apt-repo) <br /> <br />  | `sudo apt install apt-move` |
 | `lastversion` | <br /> Python script installed via `pip`. <br /> Info can be viewed on [github page](https://github.com/dvershinin/lastversion) <br /> <br /> | `pip install lastversion` |
+| `reprepro` | <br /> Installed via `proteus apt repo`. <br /> Requires `v5.4.2-1` <br /> <br /> | `sudo apt install lastversion` |
 
 <br />
 
@@ -108,10 +109,11 @@ sudo apt-get install apt-move
 <br />
 
 ### Install lastversion
-Install `pip`
+Install `pip` and `python3-venv`
 
 ```shell
 sudo apt install python3-pip
+sudo apt-get install python3-venv
 ```
 
 Download `lastversion` and unzip
@@ -132,34 +134,25 @@ pip install lastversion --break-system-packages
 ```
 
 The `lastversion` bin file will be placed in `/home/$USER/.local/bin`.
-You can add the above to your environment variable path with one of the two files below:
-```shell
-nano ~/.bashrc
+We are going to move it to `/home/$USER/bin/`
 
-nano ~/.profile
+In terminal, execute
+```shell
+touch /etc/profile.d/lastversion.sh
 ```
 
-Add at the bottom of the file:
-```shell
-if [ -d "$HOME/.local/bin" ] ; then
-    PATH="$HOME/.local/bin:$PATH"
-fi
+In the file, add
+```
+export PATH="$HOME/bin:$PATH"
 ```
 
-Refresh the file
+Then refresh the files
 ```shell
-source ~/.bashrc
-
-source ~/.profile
+source $HOME/.bashrc
+source $HOME/.profile 
 ```
 
-Or move the three BIN files to `/home/$USER/bin` and then in your batch file, add the path at the top of the script you want to use `lastversion` in
-
-```shell
-#!/bin/bash
-
-PATH="/bin:/usr/bin:/sbin:/usr/sbin:/home/$USER/bin"
-```
+Log out and back in for changes to take affect.
 
 <br />
 
