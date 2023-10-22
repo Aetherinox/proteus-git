@@ -162,7 +162,7 @@ Log out and back in for changes to take affect.
 <br />
 
 ## secrets.sh
-At the very top of the `proteus-git.sh` file, `secrets.sh` is called. This file is required in order for you to not be rate limited by `lastversion`.
+At the very top of the `proteus-git.sh` file, `secrets.sh` is called. This file is required in order for you to not be rate limited by `lastversion`, and for defining other vars that will be used in the Proteus Git.
 
 Create a `secrets.sh` and add your `Personal Access Token`.
 
@@ -177,6 +177,11 @@ To create a Personal Access Token for each service, visit:
 PATH="/bin:/usr/bin:/sbin:/usr/sbin:/home/$USER/bin"
 export GITHUB_API_TOKEN=github_pat_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 export GITLAB_PA_TOKEN=glpat-xxxxxxxxxxxxxxx
+```
+
+You can also define your `GPG` public key that you wish to use for package signing in the `secrets.sh` file:
+```shell
+export GPG_KEY=ABCD0123
 ```
 
 <br />
@@ -220,6 +225,10 @@ Ensure you have GPG configured so that pushes and packages can be signed.
 Import your GPG key into `Passwords & Keys` or whatever program you utilize to store GPG keys.
 
 <p align="center"><img style="width: 80%;text-align: center;" src="https://github.com/Aetherinox/proteus-git/assets/118329232/98c75405-1709-4878-b280-384692c1d6b3"></p>
+
+<br />
+
+You also have the option to setup Proteus Git to automatically import a GPG key. Simply place a `.gpg` file inside `proteus-git/.gpg/yourfile.gpg`. Once Proteus Git is launched, it will import the gpg file that exists within that `.gpg` folder.
 
 <br />
 

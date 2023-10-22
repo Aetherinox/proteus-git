@@ -207,7 +207,7 @@ opt_usage()
 {
     echo
     printf "  ${BLUE}${app_title}${NORMAL}\n" 1>&2
-    printf "  ${GRAY}${gui_about}${NORMAL}\n" 1>&2
+    printf "  ${GREYL}${gui_about}${NORMAL}\n" 1>&2
     echo
     printf '  %-5s %-40s\n' "Usage:" "" 1>&2
     printf '  %-5s %-40s\n' "    " "${0} [${GREYL}options${NORMAL}]" 1>&2
@@ -735,11 +735,6 @@ fi
 #   contains two files
 #       -   trusted gpg key:        aetherinox-proteus-apt-repo-archive.gpg
 #       -   source .list:           /etc/apt/sources.list.d/aetherinox*list
-#
-#   ${1}    ReqTitle
-#           contains a string if exists
-#           triggers is function called from another function to check for
-#               a prerequisite
 ##--------------------------------------------------------------------------
 
 app_setup()
@@ -747,10 +742,10 @@ app_setup()
 
     clear
 
-    local ReqTitle=${1}
     local bMissingAptmove=false
     local bMissingCurl=false
     local bMissingWget=false
+    local bMissingTree=false
     local bMissingGPG=false
     local bMissingRepo=false
 
@@ -767,6 +762,11 @@ app_setup()
     # require wget
     if ! [ -x "$(command -v wget)" ]; then
         bMissingWget=true
+    fi
+
+    # require tree
+    if ! [ -x "$(command -v tree)" ]; then
+        bMissingTree=true
     fi
 
     ##--------------------------------------------------------------------------
@@ -790,17 +790,11 @@ app_setup()
 
     # Check if contains title
     # If so, called from another function
-    if [ -n "$ReqTitle" ]; then
-        if [ "$bMissingAptmove" = true ] || [ "$bMissingCurl" = true ] || [ "$bMissingWget" = true ] || [ "$bMissingGPG" = true ] || [ "$bMissingRepo" = true ] || [ -n "${OPT_DEV_NULLRUN}" ]; then
-            echo -e "[ ${STATUS_HALT} ]"
-        fi
-    else
-        if [ "$bMissingAptmove" = true ] || [ "$bMissingCurl" = true ] || [ "$bMissingWget" = true ] || [ "$bMissingGPG" = true ] || [ "$bMissingRepo" = true ] || [ -n "${OPT_DEV_NULLRUN}" ]; then
-            echo
-            title "First Time Setup ..."
-            echo
-            sleep 1
-        fi
+    if [ "$bMissingAptmove" = true ] || [ "$bMissingCurl" = true ] || [ "$bMissingWget" = true ] || [ "$bMissingTree" = true ] || [ "$bMissingGPG" = true ] || [ "$bMissingRepo" = true ] || [ -n "${OPT_DEV_NULLRUN}" ]; then
+        echo
+        title "Addressing Dependencies ..."
+        echo
+        sleep 1
     fi
 
     ##--------------------------------------------------------------------------
@@ -861,6 +855,51 @@ app_setup()
     fi
 
     ##--------------------------------------------------------------------------
+    #   missing tree
+    ##--------------------------------------------------------------------------
+
+    if [ "$bMissingTree" = true ] || [ -n "${OPT_DEV_NULLRUN}" ]; then
+        printf "%-50s %-5s\n" "${TIME}      Installing tree package" | tee -a "${LOGS_FILE}" >/dev/null
+
+        printf '%-50s %-5s' "    |--- Adding tree package" ""
+        sleep 0.5
+
+        if [ -z "${OPT_DEV_NULLRUN}" ]; then
+            sudo apt-get update -y -q >> /dev/null 2>&1
+            sudo apt-get install tree -y -qq >> /dev/null 2>&1
+        fi
+
+        sleep 0.5
+        echo -e "[ ${STATUS_OK} ]"
+    fi
+
+    ##--------------------------------------------------------------------------
+    #   find a gpg key that can be imported
+    #   maybe later add a loop to check for multiple.
+    ##--------------------------------------------------------------------------
+
+    gpg_id=$( gpg --list-secret-keys --keyid-format=long | grep $GPG_KEY )
+    if [[ $? == 0 ]]; then 
+        echo
+        echo -e "  ${WHITE}GPG key ${GREEN}${GPG_KEY}${NORMAL} found."
+        echo
+    else
+        echo
+        echo
+        echo -e "  ${ORANGE}Error${WHITE}"
+        echo -e "  "
+        echo -e "  ${WHITE}Your specified GPG key ${YELLOW}${GPG_KEY}${NORMAL} was not found."
+        echo -e "  ${WHITE}Searching ${YELLOW}$app_dir/.gpg/${NORMAL} for a GPG key to import."
+        echo
+        echo
+
+        if [ -f $app_dir/.gpg/*.gpg ]; then
+            gpg_file=$app_dir/.gpg/*.gpg
+            gpg --import $gpg_file
+        fi
+    fi
+
+    ##--------------------------------------------------------------------------
     #   missing gpg
     ##--------------------------------------------------------------------------
 
@@ -909,7 +948,7 @@ app_setup()
     fi
 
     ##--------------------------------------------------------------------------
-    #   install app manager proteus file in /HOME/USER/bin/proteus
+    #   install proteus-git in /home/$USER/bin/proteus-git
     ##--------------------------------------------------------------------------
 
     if ! [ -f "$app_file_proteus" ] || [ -n "${OPT_DEV_NULLRUN}" ]; then
@@ -933,14 +972,10 @@ app_setup()
     fi
 
     ##--------------------------------------------------------------------------
-    #   add env path /HOME/USER/bin/
+    #   add env path /home/$USER/bin/
     ##--------------------------------------------------------------------------
 
     envpath_add '$HOME/bin'
-
-    if [ -n "$ReqTitle" ]; then
-        title "Retry: ${1}"
-    fi
 
     sleep 0.5
 
@@ -1153,6 +1188,9 @@ show_header()
     echo -e "  and adding them to the queue to be updated."
     echo
 
+    printf '%-35s %-40s\n' "  ${BOLD}${DEVGREY}GPG KEY ${NORMAL}" "${BOLD}${FUCHSIA} $GPG_KEY ${NORMAL}"
+    echo
+
     if [ -n "${OPT_DEV_NULLRUN}" ]; then
         printf '%-35s %-40s\n' "  ${BOLD}${DEVGREY}PID ${NORMAL}" "${BOLD}${FUCHSIA} $$ ${NORMAL}"
         printf '%-35s %-40s\n' "  ${BOLD}${DEVGREY}USER ${NORMAL}" "${BOLD}${FUCHSIA} ${USER} ${NORMAL}"
@@ -1168,8 +1206,6 @@ show_header()
 
     printf "%-50s %-5s\n" "${TIME}      Successfully loaded ${app_i} packages" | tee -a "${LOGS_FILE}" >/dev/null
     printf "%-50s %-5s\n" "${TIME}      Waiting for user input ..." | tee -a "${LOGS_FILE}" >/dev/null
-
-    echo
 }
 
 ##--------------------------------------------------------------------------
@@ -1191,7 +1227,13 @@ app_start()
     #   pull all changes from github
     ##--------------------------------------------------------------------------
 
-    git pull
+    git_pull=$( git pull )
+
+    echo -e "  ${GREYL}Git Pull${WHITE}"
+    echo -e "  ${WHITE}${git_pull}${NORMAL}"
+    echo
+    echo -e " ${BLUE}-------------------------------------------------------------------------${NORMAL}"
+    echo
 
     ##--------------------------------------------------------------------------
     #   check for reprepro
@@ -1275,10 +1317,9 @@ app_start()
                     mv "$app_dir/$app_filename" "$app_dir_storage/all/"
                     echo -e "[ ${STATUS_OK} ]"
 
-                    if [ -n "${bRep}" ]; then
+                    if [ -n "${bRep}" ] && [ -z "${OPT_DEV_NULLRUN}" ]; then
                         #   full path to deb package
                         deb_package="$app_dir_repo/$arch/$app_filename"
-                        echo $deb_package
                         reprepro -V \
                             --section utils \
                             --component main \
@@ -1297,14 +1338,14 @@ app_start()
                     mv "$app_dir/$app_filename" "$app_dir_storage/amd64/"
                     echo -e "[ ${STATUS_OK} ]"
 
-                    if [ -n "${bRep}" ]; then
+                    if [ -n "${bRep}" ] && [ -z "${OPT_DEV_NULLRUN}" ]; then
                         #   full path to deb package
                         deb_package="$app_dir_repo/$arch/$app_filename"
                         reprepro -V \
                             --section utils \
                             --component main \
                             --priority 0 \
-                            --architecture amd64 \
+                            --architecture $arch \
                             includedeb $sys_code "$deb_package"
                     fi
 
@@ -1319,14 +1360,14 @@ app_start()
                     mv "$app_dir/$app_filename" "$app_dir_storage/arm64/"
                     echo -e "[ ${STATUS_OK} ]"
 
-                    if [ -n "${bRep}" ]; then
+                    if [ -n "${bRep}" ] && [ -z "${OPT_DEV_NULLRUN}" ]; then
                         #   full path to deb package
                         deb_package="$app_dir_repo/$arch/$app_filename"
                         reprepro -V \
                             --section utils \
                             --component main \
                             --priority 0 \
-                            --architecture arm64 \
+                            --architecture $arch \
                             includedeb $sys_code "$deb_package"
                     fi
 
@@ -1369,7 +1410,7 @@ app_start()
     do
         repo=${lst_github[$i]}
 
-        lst_releases=($( lastversion --pre --assets $repo --filter "(?:\b|_)(?:amd64|arm64)\b.*\.deb$" ))
+        lst_releases=($( lastversion --pre --assets $repo --filter "(?:\b|_)(?:amd64|arm64|armv7l)\b.*\.deb$" ))
 
         if [ -z ${count_git} ]; then
             count_git=${#lst_releases[@]}
@@ -1400,7 +1441,7 @@ app_start()
                         mv "$app_dir/$app_filename" "$app_dir_storage/all/"
                         echo -e "[ ${STATUS_OK} ]"
 
-                        if [ -n "${bRep}" ]; then
+                        if [ -n "${bRep}" ] && [ -z "${OPT_DEV_NULLRUN}" ]; then
                             #   full path to deb package
                             deb_package="$app_dir_repo/$arch/$app_filename"
                             echo "$sys_code $deb_package"
@@ -1418,7 +1459,7 @@ app_start()
                         mv "$app_dir/$app_filename" "$app_dir_storage/amd64/"
                         echo -e "[ ${STATUS_OK} ]"
 
-                        if [ -n "${bRep}" ]; then
+                        if [ -n "${bRep}" ] && [ -z "${OPT_DEV_NULLRUN}" ]; then
                             #   full path to deb package
                             deb_package="$app_dir_repo/$arch/$app_filename"
                             echo "$sys_code $deb_package"
@@ -1426,7 +1467,7 @@ app_start()
                                 --section utils \
                                 --component main \
                                 --priority 0 \
-                                --architecture amd64 \
+                                --architecture $arch \
                                 includedeb $sys_code "$deb_package"
                         fi
 
@@ -1437,7 +1478,7 @@ app_start()
                         mv "$app_dir/$app_filename" "$app_dir_storage/arm64/"
                         echo -e "[ ${STATUS_OK} ]"
 
-                        if [ -n "${bRep}" ]; then
+                        if [ -n "${bRep}" ] && [ -z "${OPT_DEV_NULLRUN}" ]; then
                             #   full path to deb package
                             deb_package="$app_dir_repo/$arch/$app_filename"
                             echo "$sys_code $deb_package"
@@ -1445,7 +1486,7 @@ app_start()
                                 --section utils \
                                 --component main \
                                 --priority 0 \
-                                --architecture arm64 \
+                                --architecture $arch \
                                 includedeb $sys_code "$deb_package"
                         fi
 
@@ -1531,6 +1572,15 @@ EOF
     git config --global user.email $app_repo_email
 
     sleep 1
+
+    echo
+    echo -e " ${BLUE}-------------------------------------------------------------------------${NORMAL}"
+    echo
+    echo -e "  ${GREYL}Updating Github: $app_repo_branch${WHITE}"
+    echo -e "  ${WHITE}${git_pull}${NORMAL}"
+    echo
+    echo -e " ${BLUE}-------------------------------------------------------------------------${NORMAL}"
+    echo
 
     git branch -m $app_repo_branch
     git add --all
