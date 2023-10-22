@@ -11,7 +11,14 @@
 <br />
 
 ## About
-This is an internal part of the [Proteus App Manager](https://github.com/Aetherinox/proteus-app-manager) system which allows for defined packages to be automatically checked and new versions to be downloaded to the appropriate folders, which is then sent over to the repo server to be uploaded.
+This is the internal part of [Proteus App Manager](https://github.com/Aetherinox/proteus-app-manager) and [Proteus Apt Repo](https://github.com/Aetherinox/proteus-apt-repo).
+
+Once an automatic task is created, every X minutes, the main script of this repo will be called and a list of all Ubuntu packages will be checked, downloaded, and queued for updates (if any available for each package).
+
+Downloaded packages will be locally sent to their correct architecture location:
+- incoming/proteus-git/`<codename>`/`<architecture>`
+
+Once the packages are downloaded and placed in the correct location, they will then be added to the apt repo via the package [Reprepro](https://salsa.debian.org/brlink/reprepro), and then finally uploaded to Github.
 
 <br />
 
@@ -20,25 +27,25 @@ This is an internal part of the [Proteus App Manager](https://github.com/Aetheri
 <br />
 
 ## Usage
-Download the `proteus-git.sh`.
+Download `proteus-git.sh`
 ```shell
 wget "https://raw.githubusercontent.com/Aetherinox/proteus-git/main/proteus-git.sh"
 ```
 
-Set the `proteus-git.sh` to be executable
+Set `proteus-git.sh` to be executable
 
 ```shell
 sudo chmod +x proteus-git.sh
 ```
 
-Then run the script:
+Run the script
 ```shell
 ./proteus-git.sh
 ```
 
 <br />
 
-Once the script is ran for the first time, a `bin` file will be created in `/home/$USER/bin/proteus-git` and another file in `/etc/profile.d/proteus-git.sh`. This allows you to execute the proteus git app from any folder via:
+On first run a `bin` file will be created in `/home/$USER/bin/proteus-git` and another file at `/etc/profile.d/proteus-git.sh`. This allows you to execute the proteus-git app from any folder by using:
 ```shell
 proteus-git
 ```
@@ -52,20 +59,20 @@ You can then delete the original `proteus-git.sh` file you downloaded from Githu
 <br />
 
 ## Requirements
-Proteus Git requires some requirements / dependencies to be met before the script will function. You have a few options below for installing them:
+Proteus Git has requirements that need met before the script will function. You have a few options below for installing them:
 
 <br />
 
-### Option 1
-Install `apt-move` and then manually copy the files in this repo to your machine.
-```shell
-sudo apt-get install apt-move
-```
+| Requirement | Desc | Execute |
+| --- | --- | --- |
+| `apt-url` | <br /> Available from [Proteus Apt Repo](https://github.com/Aetherinox/proteus-apt-repo) <br /> Installing this also installs `apt-move` <br /> <br /> | `sudo apt install apt-url` |
+| `apt-move` | <br /> Available from [Proteus Apt Repo](https://github.com/Aetherinox/proteus-apt-repo) <br /> <br />  | `sudo apt install apt-move` |
+| `lastversion` | <br /> Python script installed via `pip`. <br /> Info can be viewed on [github page](https://github.com/dvershinin/lastversion) <br /> <br /> | `pip install lastversion` |
 
 <br />
 
-### Option 2
-Add the [Proteus Apt Repo]() to your system's sources.list by first adding the GPG key:
+### Install apt-move + apt-url
+Add [Proteus Apt Repo]() to your sources.list by first adding the GPG key:
 ```shell
 wget -qO - https://github.com/Aetherinox.gpg | sudo gpg --dearmor -o /usr/share/keyrings/aetherinox-proteus-apt-repo-archive.gpg
 ```
@@ -76,17 +83,107 @@ Then add the Proteus Apt repo to your list of sources:
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/aetherinox-proteus-apt-repo-archive.gpg] https://raw.githubusercontent.com/Aetherinox/proteus-apt-repo/master $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/aetherinox-proteus-apt-repo-archive.list
 ```
 
-Next, update your package list:
+Then update your packages:
 ```shell
 sudo apt update
 ```
 
-Finally, install `apt-url`:
+Then install `apt-url`:
 ```shell
 sudo apt install apt-url
 ```
 
-Both `apt-move` and `apt-url` will be installed. `apt-url` will be placed in `/usr/bin/apt-url`
+Both `apt-move` and `apt-url` will be installed. `apt-url` will be placed in `/usr/bin/`
+
+<br />
+<br />
+
+### Install apt-move
+Install `apt-move` and then manually copy the files in this repo to your machine.
+```shell
+sudo apt-get install apt-move
+```
+
+<br />
+<br />
+
+### Install lastversion
+Install `pip`
+
+```shell
+sudo apt install python3-pip
+```
+
+Download `lastversion` and unzip
+```shell
+mkdir -p /home/$USER/Packages/lastversion
+
+wget https://github.com/dvershinin/lastversion/archive/refs/tags/v3.3.2.zip
+
+unzip v3.3.2.zip -d /home/aetherinox/Packages/lastversion
+
+cd /home/$USER/Packages/lastversion
+```
+
+Install `lastversion`
+
+```shell
+pip install lastversion --break-system-packages
+```
+
+The `lastversion` bin file will be placed in `/home/$USER/.local/bin`.
+You can add the above to your environment variable path with one of the two files below:
+```shell
+nano ~/.bashrc
+
+nano ~/.profile
+```
+
+Add at the bottom of the file:
+```shell
+if [ -d "$HOME/.local/bin" ] ; then
+    PATH="$HOME/.local/bin:$PATH"
+fi
+```
+
+Refresh the file
+```shell
+source ~/.bashrc
+
+source ~/.profile
+```
+
+Or move the three BIN files to `/home/$USER/bin` and then in your batch file, add the path at the top of the script you want to use `lastversion` in
+
+```shell
+#!/bin/bash
+
+PATH="/bin:/usr/bin:/sbin:/usr/sbin:/home/$USER/bin"
+```
+
+<br />
+
+---
+
+<br />
+
+## secrets.sh
+At the very top of the `proteus-git.sh` file, `secrets.sh` is called. This file is required in order for you to not be rate limited by `lastversion`.
+
+Create a `secrets.sh` and add your `Personal Access Token`.
+
+To create a Personal Access Token for each service, visit:
+| Service | Link |
+| --- | --- |
+| Github | https://github.com/settings/tokens |
+| Gitlab | https://gitlab.com/-/profile/personal_access_tokens |
+
+```shell
+#!/bin/bash
+PATH="/bin:/usr/bin:/sbin:/usr/sbin:/home/$USER/bin"
+export GITHUB_API_TOKEN=github_pat_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+export GITLAB_PA_TOKEN=glpat-xxxxxxxxxxxxxxx
+```
 
 <br />
 
