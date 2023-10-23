@@ -1410,7 +1410,7 @@ app_start()
     do
         repo=${lst_github[$i]}
 
-        lst_releases=($( lastversion --pre --assets $repo --filter "(?:\b|_)(?:amd64|arm64|armv7l)\b.*\.deb$" ))
+        lst_releases=($( lastversion --pre --assets $repo --filter "(?:\b|_)(?:amd64|arm64)\b.*\.deb$" ))
 
         if [ -z ${count_git} ]; then
             count_git=${#lst_releases[@]}
