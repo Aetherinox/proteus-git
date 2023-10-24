@@ -3,20 +3,26 @@ PATH="/bin:/usr/bin:/sbin:/usr/sbin:/home/$USER/bin"
 echo 
 
 ##--------------------------------------------------------------------------
-#   load secrets file to handle Github rate limiting via a PAF.
-#   managed via https://github.com/settings/tokens?type=beta
-##--------------------------------------------------------------------------
-
-. ./secrets.sh
-
-##--------------------------------------------------------------------------
 #   @author :           aetherinox
 #   @script :           Proteus Apt Git
-#   @when   :           2023-10-19 15:24:32
+#   @when   :           2023-10-23 10:03:55
 #   @url    :           https://github.com/Aetherinox/proteus-git
 #
 #   requires chmod +x proteus_git.sh
 #
+##--------------------------------------------------------------------------
+
+##--------------------------------------------------------------------------
+#   load secrets file to handle Github rate limiting via a PAF.
+#   managed via https://github.com/settings/tokens?type=beta
+##--------------------------------------------------------------------------
+
+if [ -f secrets.sh ]; then
+. ./secrets.sh
+fi
+
+##--------------------------------------------------------------------------
+#   requite git
 ##--------------------------------------------------------------------------
 
 # require git
@@ -98,20 +104,6 @@ app_queue_url=()
 app_i=0
 
 ##--------------------------------------------------------------------------
-#   lists > github repos
-#
-#   a list of github repos to find updates from
-##--------------------------------------------------------------------------
-
-lst_github=(
-    'obsidianmd/obsidian-releases'
-    'AppOutlet/AppOutlet'
-    'bitwarden/clients'
-    'shiftkey/desktop'
-    'FreeTubeApp/FreeTube'
-)
-
-##--------------------------------------------------------------------------
 #   exports
 ##--------------------------------------------------------------------------
 
@@ -124,6 +116,182 @@ export ARGS=$1
 export LOGS_DIR="$app_dir/logs"
 export LOGS_FILE="$LOGS_DIR/proteus-git-${DATE}.log"
 export SECONDS=0
+
+##--------------------------------------------------------------------------
+#   lists > github repos
+##--------------------------------------------------------------------------
+
+lst_github=(
+    'obsidianmd/obsidian-releases'
+    'AppOutlet/AppOutlet'
+    'bitwarden/clients'
+    'shiftkey/desktop'
+    'FreeTubeApp/FreeTube'
+    'makedeb/makedeb'
+)
+
+##--------------------------------------------------------------------------
+#   list > packages
+##--------------------------------------------------------------------------
+
+lst_packages=(
+    'adduser'
+    'apt-move'
+    'apt-utils'
+    'dialog'
+    'gnome-keyring'
+    'gnome-keysign'
+    'gnome-shell-extension-manager'
+    'gpg'
+    'gpgconf'
+    'gpgv'
+    'keyutils'
+    'kgpg'
+    'libnginx-mod-http-auth-pam'
+    'libnginx-mod-http-cache-purge'
+    'libnginx-mod-http-dav-ext'
+    'libnginx-mod-http-echo'
+    'libnginx-mod-http-fancyindex'
+    'libnginx-mod-http-geoip'
+    'libnginx-mod-http-headers-more-filter'
+    'libnginx-mod-http-ndk'
+    'libnginx-mod-http-perl'
+    'libnginx-mod-http-subs-filter'
+    'libnginx-mod-http-uploadprogress'
+    'libnginx-mod-http-upstream-fair'
+    'libnginx-mod-nchan'
+    'libnginx-mod-rtmp'
+    'libnginx-mod-stream-geoip'
+    'lsb-base'
+    'lz4'
+    'mysql-client'
+    'mysql-common'
+    'mysql-server'
+    'network-manager-config-connectivity-ubuntu'
+    'network-manager-dev'
+    'network-manager-gnome'
+    'network-manager-openvpn-gnome'
+    'network-manager-openvpn'
+    'network-manager-pptp-gnome'
+    'network-manager-pptp'
+    'network-manager'
+    'networkd-dispatcher'
+    'nginx-common'
+    'nginx-confgen'
+    'nginx-core'
+    'nginx-dev'
+    'nginx-doc'
+    'nginx-extras'
+    'nginx-full'
+    'nginx-light'
+    'nginx'
+    'open-vm-tools-desktop'
+    'open-vm-tools-dev'
+    'open-vm-tools'
+    'php-all-dev'
+    'php-amqp'
+    'php-amqplib'
+    'php-apcu-all-dev'
+    'php-apcu'
+    'php-ast-all-dev'
+    'php-ast'
+    'php-bacon-qr-code'
+    'php-bcmath'
+    'php-brick-math'
+    'php-brick-varexporter'
+    'php-bz2'
+    'php-cas'
+    'php-cgi'
+    'php-cli'
+    'php-code-lts-u2f-php-server'
+    'php-common'
+    'php-crypt-gpg'
+    'php-curl'
+    'php-db'
+    'php-dba'
+    'php-decimal'
+    'php-dev'
+    'php-ds-all-dev'
+    'php-ds'
+    'php-email-validator'
+    'php-embed'
+    'php-enchant'
+    'php-excimer'
+    'php-faker'
+    'php-fpm'
+    'php-fxsl'
+    'php-gd'
+    'php-gearman'
+    'php-gettext-languages'
+    'php-gmagick-all-dev'
+    'php-gmagick'
+    'php-gmp'
+    'php-gnupg-all-dev'
+    'php-gnupg'
+    'php-gnupg'
+    'php-grpc'
+    'php-http'
+    'php-igbinary'
+    'php-imagick'
+    'php-imap'
+    'php-inotify'
+    'php-interbase'
+    'php-intl'
+    'php-ldap'
+    'php-mailparse'
+    'php-maxminddb'
+    'php-mbstring'
+    'php-mcrypt'
+    'php-memcache'
+    'php-memcached'
+    'php-mongodb'
+    'php-msgpack'
+    'php-mysql'
+    'php-oauth'
+    'php-odbc'
+    'php-pcov'
+    'php-pgsql'
+    'php-phpdbg'
+    'php-ps'
+    'php-pspell'
+    'php-psr'
+    'php-raphf'
+    'php-readline'
+    'php-redis'
+    'php-rrd'
+    'php-smbclient'
+    'php-snmp'
+    'php-soap'
+    'php-solr'
+    'php-sqlite3'
+    'php-ssh2'
+    'php-stomp'
+    'php-sybase'
+    'php-tideways'
+    'php-tidy'
+    'php-uopz'
+    'php-uploadprogress'
+    'php-uuid'
+    'php-xdebug'
+    'php-xml'
+    'php-xmlrpc'
+    'php-yac'
+    'php-yaml'
+    'php-zip'
+    'php-zmq'
+    'php'
+    'wget'
+)
+
+##--------------------------------------------------------------------------
+#   list > architectures
+##--------------------------------------------------------------------------
+
+lst_arch=(
+    'all'
+    'amd64'
+    'arm64'
+)
 
 ##--------------------------------------------------------------------------
 #   vars > repo update
@@ -215,13 +383,11 @@ opt_usage()
     printf '  %-5s %-40s\n' "Options:" "" 1>&2
     printf '  %-5s %-18s %-40s\n' "    " "-d, --dev" "dev mode" 1>&2
     printf '  %-5s %-18s %-40s\n' "    " "-h, --help" "show help menu" 1>&2
-    printf '  %-5s %-18s %-40s\n' "    " "-i, --install" "install app from cli" 1>&2
-    printf '  %-5s %-18s %-40s\n' "    " "" "    ${DEVGREY}-i \"members\"${NORMAL}" 1>&2
-    printf '  %-5s %-18s %-40s\n' "    " "    --njs-ver" "specify nodejs version to install" 1>&2
-    printf '  %-5s %-18s %-40s\n' "    " "" "    ${DEVGREY}-i \"NodeJS\" --njs-ver 18${NORMAL}" 1>&2
+    printf '  %-5s %-18s %-40s\n' "    " "-g, --githubOnly" "only update github packages" 1>&2
+    printf '  %-5s %-18s %-40s\n' "    " "-s, --sourceOnly" "only update apt source packages" 1>&2
     printf '  %-5s %-18s %-40s\n' "    " "-n, --nullrun" "dev: null run" 1>&2
     printf '  %-5s %-18s %-40s\n' "    " "" "simulate app installs (no changes)" 1>&2
-    printf '  %-5s %-18s %-40s\n' "    " "-s, --silent" "silent mode which disables logging" 1>&2
+    printf '  %-5s %-18s %-40s\n' "    " "-q, --quiet" "quiet mode which disables logging" 1>&2
     printf '  %-5s %-18s %-40s\n' "    " "-u, --update" "update ${app_file_proteus} executable" 1>&2
     printf '  %-5s %-18s %-40s\n' "    " "    --branch" "branch to update from" 1>&2
     printf '  %-5s %-18s %-40s\n' "    " "-v, --version" "current version of app manager" 1>&2
@@ -235,6 +401,16 @@ while [ $# -gt 0 ]; do
     -d|--dev)
             OPT_DEV_ENABLE=true
             echo -e "  ${FUCHSIA}${BLINK}Devmode Enabled${NORMAL}"
+            ;;
+
+    -g*|--githubOnly*)
+            OPT_ONLY_GIT=true
+            echo "Update Github Only"
+            ;;
+
+    -p*|--sourceOnly*)
+            OPT_ONLY_SRC=true
+            echo "Update Source Packages Only"
             ;;
 
     -h*|--help*)
@@ -257,7 +433,7 @@ while [ $# -gt 0 ]; do
             echo -e "  ${FUCHSIA}${BLINK}Devnull Enabled${NORMAL}"
             ;;
 
-    -s|--silent)
+    -q|--quiet)
             OPT_NOLOG=true
             echo -e "  ${FUCHSIA}${BLINK}Logging Disabled{NORMAL}"
             ;;
@@ -993,169 +1169,6 @@ app_setup
 [ -z "${OPT_DEV_NULLRUN}" ] && printf "%-50s %-5s\n\n" "${TIME}      Notice: Dev Option: 'No Actions' Disabled" | tee -a "${LOGS_FILE}" >/dev/null
 
 ##--------------------------------------------------------------------------
-#   list > packages
-##--------------------------------------------------------------------------
-
-lst_packages=(
-    'adduser'
-    'apt-move'
-    'apt-utils'
-    'dialog'
-    'gnome-keyring'
-    'gnome-keysign'
-    'gnome-shell-extension-manager'
-    'gpg'
-    'gpgconf'
-    'gpgv'
-    'keyutils'
-    'kgpg'
-    'libnginx-mod-http-auth-pam'
-    'libnginx-mod-http-cache-purge'
-    'libnginx-mod-http-dav-ext'
-    'libnginx-mod-http-echo'
-    'libnginx-mod-http-fancyindex'
-    'libnginx-mod-http-geoip'
-    'libnginx-mod-http-headers-more-filter'
-    'libnginx-mod-http-ndk'
-    'libnginx-mod-http-perl'
-    'libnginx-mod-http-subs-filter'
-    'libnginx-mod-http-uploadprogress'
-    'libnginx-mod-http-upstream-fair'
-    'libnginx-mod-nchan'
-    'libnginx-mod-rtmp'
-    'libnginx-mod-stream-geoip'
-    'lsb-base'
-    'lz4'
-    'mysql-client'
-    'mysql-common'
-    'mysql-server'
-    'network-manager-config-connectivity-ubuntu'
-    'network-manager-dev'
-    'network-manager-gnome'
-    'network-manager-openvpn-gnome'
-    'network-manager-openvpn'
-    'network-manager-pptp-gnome'
-    'network-manager-pptp'
-    'network-manager'
-    'networkd-dispatcher'
-    'nginx-common'
-    'nginx-confgen'
-    'nginx-core'
-    'nginx-dev'
-    'nginx-doc'
-    'nginx-extras'
-    'nginx-full'
-    'nginx-light'
-    'nginx'
-    'open-vm-tools-desktop'
-    'open-vm-tools-dev'
-    'open-vm-tools'
-    'php-all-dev'
-    'php-amqp'
-    'php-amqplib'
-    'php-apcu-all-dev'
-    'php-apcu'
-    'php-ast-all-dev'
-    'php-ast'
-    'php-bacon-qr-code'
-    'php-bcmath'
-    'php-brick-math'
-    'php-brick-varexporter'
-    'php-bz2'
-    'php-cas'
-    'php-cgi'
-    'php-cli'
-    'php-code-lts-u2f-php-server'
-    'php-common'
-    'php-crypt-gpg'
-    'php-curl'
-    'php-db'
-    'php-dba'
-    'php-decimal'
-    'php-dev'
-    'php-ds-all-dev'
-    'php-ds'
-    'php-email-validator'
-    'php-embed'
-    'php-enchant'
-    'php-excimer'
-    'php-faker'
-    'php-fpm'
-    'php-fxsl'
-    'php-gd'
-    'php-gearman'
-    'php-gettext-languages'
-    'php-gmagick-all-dev'
-    'php-gmagick'
-    'php-gmp'
-    'php-gnupg-all-dev'
-    'php-gnupg'
-    'php-gnupg'
-    'php-grpc'
-    'php-http'
-    'php-igbinary'
-    'php-imagick'
-    'php-imap'
-    'php-inotify'
-    'php-interbase'
-    'php-intl'
-    'php-ldap'
-    'php-mailparse'
-    'php-maxminddb'
-    'php-mbstring'
-    'php-mcrypt'
-    'php-memcache'
-    'php-memcached'
-    'php-mongodb'
-    'php-msgpack'
-    'php-mysql'
-    'php-oauth'
-    'php-odbc'
-    'php-pcov'
-    'php-pgsql'
-    'php-phpdbg'
-    'php-ps'
-    'php-pspell'
-    'php-psr'
-    'php-raphf'
-    'php-readline'
-    'php-redis'
-    'php-rrd'
-    'php-smbclient'
-    'php-snmp'
-    'php-soap'
-    'php-solr'
-    'php-sqlite3'
-    'php-ssh2'
-    'php-stomp'
-    'php-sybase'
-    'php-tideways'
-    'php-tidy'
-    'php-uopz'
-    'php-uploadprogress'
-    'php-uuid'
-    'php-xdebug'
-    'php-xml'
-    'php-xmlrpc'
-    'php-yac'
-    'php-yaml'
-    'php-zip'
-    'php-zmq'
-    'php'
-    'wget'
-)
-
-##--------------------------------------------------------------------------
-#   list > architectures
-##--------------------------------------------------------------------------
-
-lst_arch=(
-    'amd64'
-    'arm64'
-    'all'
-)
-
-##--------------------------------------------------------------------------
 #   associated app urls
 #
 #   when certain apps are installed, we may want to open a browser window
@@ -1209,40 +1222,13 @@ show_header()
 }
 
 ##--------------------------------------------------------------------------
-#   Start App
+#   app > run > apt source packages
+#
+#   updates apt source packages for the distro being used
 ##--------------------------------------------------------------------------
 
-app_start()
+app_run_aptsource_update()
 {
-
-    show_header
-
-    ##--------------------------------------------------------------------------
-    #   set seconds for duration
-    ##--------------------------------------------------------------------------
-
-    export SECONDS=0
-
-    ##--------------------------------------------------------------------------
-    #   pull all changes from github
-    ##--------------------------------------------------------------------------
-
-    git_pull=$( git pull )
-
-    echo -e "  ${GREYL}Git Pull${WHITE}"
-    echo -e "  ${WHITE}${git_pull}${NORMAL}"
-    echo
-    echo -e " ${BLUE}-------------------------------------------------------------------------${NORMAL}"
-    echo
-
-    ##--------------------------------------------------------------------------
-    #   check for reprepro
-    ##--------------------------------------------------------------------------
-
-    if [ -x "$(command -v reprepro)" ]; then
-        bRep=true
-    fi
-
     ##--------------------------------------------------------------------------
     #   sort alphabetically
     ##--------------------------------------------------------------------------
@@ -1394,10 +1380,14 @@ app_start()
 
     done
 
-    ##--------------------------------------------------------------------------
-    #   update github repo scripts
-    ##--------------------------------------------------------------------------
+}
 
+##--------------------------------------------------------------------------
+#   app > run > github
+##--------------------------------------------------------------------------
+
+app_run_github_update()
+{
     count=${#lst_github[@]}
 
     begin "Downloading Github Packages [ $count ]"
@@ -1410,7 +1400,9 @@ app_start()
     do
         repo=${lst_github[$i]}
 
-        lst_releases=($( lastversion --pre --assets $repo --filter "(?:\b|_)(?:amd64|arm64)\b.*\.deb$" ))
+        #   (?:\b|_)(?:amd64|arm64|$sys_code)\b.*\.deb$
+        #   (?:\b|_)(?:amd64|arm64|$sys_code).*\b.*\.deb$
+        lst_releases=($( lastversion --pre --assets $repo --filter "(?:\b|_)(?:amd64|arm64|$sys_code)\b.*\.deb$" ))
 
         if [ -z ${count_git} ]; then
             count_git=${#lst_releases[@]}
@@ -1422,7 +1414,16 @@ app_start()
             repo_file_url=${lst_releases[$key]}
             app_filename="${repo_file_url##*/}"
 
-            #   no longer needed
+            #   The filtering in the lastversion query should be enough, however, some people name their packages in a way
+            #   where it would be difficult to rely only on that.
+            #
+            #   makedeb/makedeb uses a file structure similar to the following:
+            #       makedeb-beta_16.1.0-beta1_armhf_focal.deb
+            #       makedeb-beta_16.1.0-beta1_arm64_focal.deb
+            #   
+            #   this filters out "armhf", however, readds it because the word focal matches
+            #   so we need to do additional filtering below.
+
             check=`echo $app_filename | grep '\armhf\|armv7l'`
             if [ -n "$check" ]; then
                 continue
@@ -1500,6 +1501,61 @@ app_start()
         echo
 
     done
+}
+
+##--------------------------------------------------------------------------
+#   upload to github > precheck
+##--------------------------------------------------------------------------
+
+app_run_github_precheck()
+{
+    # see if repo directory is in safelist for git
+    if git config --global --get-all safe.directory | grep -q "$app_dir"; then
+        bFoundSafe=true
+    fi
+
+    # if new repo, add to safelist
+    if ! [ $bFoundSafe ]; then
+        git config --global --add safe.directory $app_dir
+    fi
+
+    git config --global user.name $app_repo_user
+    git config --global user.email $app_repo_email
+
+    sleep 1
+}
+
+##--------------------------------------------------------------------------
+#   upload to github
+##--------------------------------------------------------------------------
+
+app_run_github_push()
+{
+    app_run_github_precheck
+
+    echo
+    echo -e " ${BLUE}-------------------------------------------------------------------------${NORMAL}"
+    echo
+    echo -e "  ${GREYL}Updating Github: $app_repo_branch${WHITE}"
+    echo
+    echo -e " ${BLUE}-------------------------------------------------------------------------${NORMAL}"
+    echo
+
+    git branch -m $app_repo_branch
+    git add --all
+    git add -u
+
+    sleep 1
+
+    git commit -S -m "$app_repo_commit"
+
+    sleep 1
+
+    git push -u origin $app_repo_branch
+}
+
+app_run_start()
+{
 
     ##--------------------------------------------------------------------------
     #   .app folder
@@ -1509,10 +1565,54 @@ app_start()
     mkdir -p            $manifest_dir
 
     ##--------------------------------------------------------------------------
-    #   .app folder > create app.json
+    #   .app folder > create .json
     ##--------------------------------------------------------------------------
 
-tee $manifest_dir/app.json >/dev/null <<EOF
+tee $manifest_dir/$sys_code.json >/dev/null <<EOF
+{
+    "name":             "${app_title}",
+    "version":          "$(get_version)",
+    "author":           "${app_repo_author}",
+    "description":      "${app_about}",
+    "url":              "${app_repo_url}",
+    "last_update":      "Running ........",
+    "last_update_ts":   "${DATE_TS}"
+}
+EOF
+
+    app_run_github_precheck
+
+    git branch -m $app_repo_branch
+    git add --all
+    git add -u
+
+    sleep 1
+
+    git commit -S -m "$app_repo_commit"
+
+    sleep 1
+
+    git push -u origin $app_repo_branch
+}
+
+##--------------------------------------------------------------------------
+#   update tree
+##--------------------------------------------------------------------------
+
+app_run_tree_update()
+{
+    ##--------------------------------------------------------------------------
+    #   .app folder
+    ##--------------------------------------------------------------------------
+
+    local manifest_dir=$app_dir/.app/
+    mkdir -p            $manifest_dir
+
+    ##--------------------------------------------------------------------------
+    #   .app folder > create .json
+    ##--------------------------------------------------------------------------
+
+tee $manifest_dir/$sys_code.json >/dev/null <<EOF
 {
     "name":             "${app_title}",
     "version":          "$(get_version)",
@@ -1528,9 +1628,10 @@ EOF
     #   tree
     ##--------------------------------------------------------------------------
 
-    #    tree -a -I ".git" --dirsfirst > $manifest_dir/tree.txt
     tree_output=$( tree -a -I ".git" --dirsfirst )
     tree -a -I ".git" --dirsfirst -J > $manifest_dir/tree.json
+
+    #   useful for Gitea with HTML rendering plugin, not useful for Github
     #   tree -a --dirsfirst -I '.git' -H https://github.com/${app_repo_author}/${app_repo}/src/branch/$app_repo_branch/ -o $app_dir/.data/tree.html
 
     ##--------------------------------------------------------------------------
@@ -1551,57 +1652,82 @@ Last generated on \`$NOW\`
 $tree_output
 \`\`\`
 EOF
+}
 
-    sleep 5
+##--------------------------------------------------------------------------
+#   Start App
+##--------------------------------------------------------------------------
+
+app_start()
+{
+
+    show_header
 
     ##--------------------------------------------------------------------------
-    #   upload to github
+    #   set seconds for duration
     ##--------------------------------------------------------------------------
 
-    # see if repo directory is in safelist for git
-    if git config --global --get-all safe.directory | grep -q "$app_dir"; then
-        bFoundSafe=true
-    fi
+    export SECONDS=0
 
-    # if new repo, add to safelist
-    if ! [ $bFoundSafe ]; then
-        git config --global --add safe.directory $app_dir
-    fi
+    ##--------------------------------------------------------------------------
+    #   pull all changes from github
+    ##--------------------------------------------------------------------------
 
-    git config --global user.name $app_repo_user
-    git config --global user.email $app_repo_email
+    git_pull=$( git pull )
 
-    sleep 1
-
-    echo
-    echo -e " ${BLUE}-------------------------------------------------------------------------${NORMAL}"
-    echo
-    echo -e "  ${GREYL}Updating Github: $app_repo_branch${WHITE}"
+    echo -e "  ${GREYL}Git Pull${WHITE}"
     echo -e "  ${WHITE}${git_pull}${NORMAL}"
     echo
     echo -e " ${BLUE}-------------------------------------------------------------------------${NORMAL}"
     echo
 
-    git branch -m $app_repo_branch
-    git add --all
-    git add -u
+    ##--------------------------------------------------------------------------
+    #   check for reprepro
+    ##--------------------------------------------------------------------------
 
-    sleep 1
+    if [ -x "$(command -v reprepro)" ]; then
+        bRep=true
+    fi
 
-    git commit -S -m "$app_repo_commit"
+    ##--------------------------------------------------------------------------
+    #   run
+    ##--------------------------------------------------------------------------
 
-    sleep 1
-
-    git push -u origin $app_repo_branch
+    if [ -n "${OPT_ONLY_GIT}" ]; then
+        app_run_start
+        app_run_github_update
+        app_run_tree_update
+        app_run_github_push
+    elif [ -n "${OPT_ONLY_SRC}" ]; then
+        app_run_start
+        app_run_aptsource_update
+        app_run_tree_update
+        app_run_github_push
+    else
+        app_run_start
+        app_run_aptsource_update
+        app_run_github_update
+        app_run_tree_update
+        app_run_github_push
+    fi
 
     ##--------------------------------------------------------------------------
     #   duration elapsed
     ##--------------------------------------------------------------------------
 
     duration=$SECONDS
-    elapsed="$(($duration / 60)) minutes and $(($duration % 60)) seconds elapsed."
+    elapsed="$(($duration / 60)) minutes and $(( $duration % 60 )) seconds elapsed."
     printf "%-57s %-15s\n\n\n\n" "${TIME}      ${elapsed}" | tee -a "${LOGS_FILE}" >/dev/null
-    printf '%-60s %-5s' "    ${elapsed}" ""
+
+    echo
+    echo -e " ${BLUE}-------------------------------------------------------------------------${NORMAL}"
+    echo
+    echo -e "  ${GREYL}Total Execution Time: $elapsed${WHITE}"
+    echo
+    echo -e " ${BLUE}-------------------------------------------------------------------------${NORMAL}"
+    echo
+
+    sleep 10
 
     ##--------------------------------------------------------------------------
     #   close logs, kill spinner, and finish process
@@ -1609,9 +1735,6 @@ EOF
 
     finish
     Logs_Finish
-
-    delay 10
-
     exit
 }
 
