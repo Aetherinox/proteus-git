@@ -1362,7 +1362,7 @@ show_header()
 #   updates apt source packages for the distro being used
 ##--------------------------------------------------------------------------
 
-app_run_aptsource_update()
+app_run_dl_aptsrc()
 {
     ##--------------------------------------------------------------------------
     #   sort alphabetically
@@ -1521,7 +1521,7 @@ app_run_aptsource_update()
 #   app > run > github
 ##--------------------------------------------------------------------------
 
-app_run_github_update()
+app_run_dl_gh()
 {
     count=${#lst_github[@]}
 
@@ -1667,7 +1667,7 @@ app_run_github_precheck()
 #   upload to github
 ##--------------------------------------------------------------------------
 
-app_run_github_end()
+app_run_gh_end()
 {
     app_run_github_precheck
 
@@ -1693,7 +1693,7 @@ app_run_github_end()
     git push -u origin $app_repo_branch
 }
 
-app_run_github_start()
+app_run_gh_start()
 {
 
     ##--------------------------------------------------------------------------
@@ -1834,21 +1834,21 @@ app_start()
     ##--------------------------------------------------------------------------
 
     if [ -n "${OPT_ONLY_GIT}" ]; then
-        app_run_github_start
-        app_run_github_update
+        app_run_gh_start
+        app_run_dl_gh
         app_run_tree_update
-        app_run_github_end
+        app_run_gh_end
     elif [ -n "${OPT_ONLY_SRC}" ]; then
-        app_run_github_start
-        app_run_aptsource_update
+        app_run_gh_start
+        app_run_dl_aptsrc
         app_run_tree_update
-        app_run_github_end
+        app_run_gh_end
     else
-        app_run_github_start
-        app_run_aptsource_update
-        app_run_github_update
+        app_run_gh_start
+        app_run_dl_aptsrc
+        app_run_dl_gh
         app_run_tree_update
-        app_run_github_end
+        app_run_gh_end
     fi
 
     ##--------------------------------------------------------------------------
