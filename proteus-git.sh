@@ -334,6 +334,119 @@ else
 fi
 
 ##--------------------------------------------------------------------------
+#   check > secrets file
+##--------------------------------------------------------------------------
+
+if ! [ -f secrets.sh ]; then
+    echo
+    echo -e "  ${BRIGHT}${ORANGE}WARNING  ${WHITE}secrets.sh file not found${NORMAL}"
+    echo -e "  ${BRIGHT}${WHITE}Must create a ${FUCHSIA}secrets.sh${WHITE} file.${NORMAL}"
+    echo -e "  ${BRIGHT}${WHITE}This file defines things such as your${NORMAL}"
+    echo -e "  ${BRIGHT}${WHITE}GPG key and Github Personal Token.${NORMAL}"
+    echo
+
+    printf "  Press any key to abort ... ${NORMAL}"
+    read -n 1 -s -r -p ""
+
+    echo
+    echo
+    exit 1
+fi
+
+##--------------------------------------------------------------------------
+#   check > GPG key
+##--------------------------------------------------------------------------
+
+if [ -z "${GPG_KEY}" ]; then
+    echo
+    echo -e "  ${BRIGHT}${ORANGE}WARNING  ${WHITE}GPG Key not specified${NORMAL}"
+    echo -e "  ${BRIGHT}${WHITE}Must create a ${FUCHSIA}secrets.sh${WHITE} file and define your GPG key.${NORMAL}"
+    echo
+    echo -e "  ${BRIGHT}${WHITE}    ${RED}export ${GREEN}GPG_KEY=${WHITE}XXXXXXXX${NORMAL}"
+    echo
+
+    printf "  Press any key to abort ... ${NORMAL}"
+    read -n 1 -s -r -p ""
+
+    echo
+    echo
+    exit 1
+fi
+
+##--------------------------------------------------------------------------
+#   check > Github / Gitlab API tokens
+##--------------------------------------------------------------------------
+
+if [ -z "${GITHUB_API_TOKEN}" ] && [ -z "${GITLAB_API_TOKEN}" ]; then
+    echo
+    echo -e "  ${BRIGHT}${ORANGE}WARNING  ${WHITE}Missing ${YELLOW}API Tokens${WHITE}${NORMAL}"
+    echo -e "  ${BRIGHT}${WHITE}Must create a ${FUCHSIA}secrets.sh${WHITE} file and define an API token${NORMAL}"
+    echo -e "  ${BRIGHT}${WHITE}for either Github or Gitlab.${NORMAL}"
+    echo
+    echo -e "  ${BRIGHT}${WHITE}    ${RED}export ${GREEN}GITHUB_API_TOKEN=${WHITE}XXXXXXX${NORMAL}"
+    echo -e "  ${BRIGHT}${WHITE}    ${RED}export ${GREEN}GITLAB_PA_TOKEN=${WHITE}XXXXXXX${NORMAL}"
+    echo
+    echo -e "  ${BRIGHT}${WHITE}Without supplying this, you will be rate limited.${NORMAL}"
+    echo -e "  ${BRIGHT}${WHITE}on queries using ${YELLOW}LastVersion${WHITE}${NORMAL}"
+    echo
+
+    printf "  Press any key to abort ... ${NORMAL}"
+    read -n 1 -s -r -p ""
+
+    echo
+    echo
+    exit 1
+fi
+
+##--------------------------------------------------------------------------
+#   check > gpg key added to .gitignore
+##--------------------------------------------------------------------------
+
+checkgit_signing=$( git config --global --get-all user.signingKey )
+if [ -z "${checkgit_signing}" ]; then
+    echo
+    echo -e "  ${BRIGHT}${ORANGE}WARNING  ${WHITE}Missing ${YELLOW}user.signingKey${WHITE} in ${YELLOW}/home/${USER}/.gitconfig${NORMAL}"
+    echo -e "  ${BRIGHT}${WHITE}You should have the below entries in your ${FUCHSIA}.gitconfig${WHITE}:${NORMAL}"
+    echo
+    echo -e "  ${BRIGHT}${WHITE}    ${GREYL}[user]${NORMAL}"
+    echo -e "  ${BRIGHT}${WHITE}         ${BLUE}signingKey${WHITE} = ${GPG_KEY}${NORMAL}"
+    echo
+    echo -e "  ${BRIGHT}${WHITE}    ${GREYL}[commit]${NORMAL}"
+    echo -e "  ${BRIGHT}${WHITE}         ${BLUE}gpgsign${WHITE} = true${NORMAL}"
+    echo
+    echo -e "  ${BRIGHT}${WHITE}    ${GREYL}[gpg]${NORMAL}"
+    echo -e "  ${BRIGHT}${WHITE}         ${BLUE}program${WHITE} = gpg${NORMAL}"
+    echo
+    echo -e "  ${BRIGHT}${WHITE}    ${GREYL}[tag]${NORMAL}"
+    echo -e "  ${BRIGHT}${WHITE}         ${BLUE}forceSignAnnotated${WHITE} = true${NORMAL}"
+    echo
+
+    git config --global gpg.program gpg
+    git config --global commit.gpgsign true
+    git config --global tag.forceSignAnnotated true
+    git config --global user.signingkey ${GPG_KEY}!
+    git config --global credential.helper store
+
+    sleep 1
+
+    echo -e "  ${BRIGHT}${WHITE}Automatically adding these values to your ${FUCHSIA}.gitconfig${WHITE}:${NORMAL}"
+
+    sleep 2
+
+    checkgit_signing=$( git config --global --get-all user.signingKey )
+    if [ -z "${checkgit_signing}" ]; then
+        echo
+        echo -e "  ${BRIGHT}${ORANGE}WARNING  ${WHITE}Could not add the above entries to ${YELLOW}/home/${USER}/.gitconfig${NORMAL}"
+        echo -e "  ${BRIGHT}${WHITE}You will need to manually add these entries.${WHITE}:${NORMAL}"
+        echo
+    else
+        echo
+        echo -e "  ${BRIGHT}${GREEN}SUCCESS  ${WHITE}Entries added to ${YELLOW}/home/${USER}/.gitconfig${NORMAL}"
+        echo
+    fi
+fi
+
+##--------------------------------------------------------------------------
 #   func > get version
 #
 #   returns current version of app
@@ -752,6 +865,16 @@ open_url()
 }
 
 ##--------------------------------------------------------------------------
+#   func > cmd title
+##--------------------------------------------------------------------------
+
+title()
+{
+    printf '%-57s %-5s' "  ${1}" ""
+    sleep 0.3
+}
+
+##--------------------------------------------------------------------------
 #   func > begin action
 ##--------------------------------------------------------------------------
 
@@ -1054,24 +1177,42 @@ app_setup()
     #   maybe later add a loop to check for multiple.
     ##--------------------------------------------------------------------------
 
-    gpg_id=$( gpg --list-secret-keys --keyid-format=long | grep $GPG_KEY )
-    if [[ $? == 0 ]]; then 
+    if [ -z "${GPG_KEY}" ]; then
         echo
-        echo -e "  ${WHITE}GPG key ${GREEN}${GPG_KEY}${NORMAL} found."
+        echo -e "  ${BRIGHT}${ORANGE}WARNING  ${WHITE}GPG Key not specified${NORMAL}"
+        echo -e "  ${BRIGHT}${WHITE}Must create a ${FUCHSIA}secrets.sh${WHITE} file and define your GPG key.${NORMAL}"
         echo
-    else
-        echo
-        echo
-        echo -e "  ${ORANGE}Error${WHITE}"
-        echo -e "  "
-        echo -e "  ${WHITE}Your specified GPG key ${YELLOW}${GPG_KEY}${NORMAL} was not found."
-        echo -e "  ${WHITE}Searching ${YELLOW}$app_dir/.gpg/${NORMAL} for a GPG key to import."
-        echo
+        echo -e "  ${BRIGHT}${WHITE}    ${RED}export ${GREEN}GPG_KEY=${WHITE}XXXXXXXX${NORMAL}"
         echo
 
-        if [ -f $app_dir/.gpg/*.gpg ]; then
-            gpg_file=$app_dir/.gpg/*.gpg
-            gpg --import $gpg_file
+        printf "  Press any key to abort ... ${NORMAL}"
+        read -n 1 -s -r -p ""
+
+        echo
+        echo
+        exit 1
+    else
+        gpg_id=$( gpg --list-secret-keys --keyid-format=long | grep $GPG_KEY )
+        if [[ $? == 0 ]]; then 
+            echo
+            echo -e "  ${WHITE}GPG key ${GREEN}${GPG_KEY}${NORMAL} found."
+            echo
+
+            sleep 5
+        else
+            echo
+            echo
+            echo -e "  ${ORANGE}Error${WHITE}"
+            echo -e "  "
+            echo -e "  ${WHITE}Specified GPG key ${YELLOW}${GPG_KEY}${NORMAL} is not imported into GPG."
+            echo -e "  ${WHITE}Searching ${YELLOW}$app_dir/.gpg/${NORMAL} for a GPG key to import."
+            echo
+            echo
+
+            if [ -f $app_dir/.gpg/*.gpg ]; then
+                gpg_file=$app_dir/.gpg/*.gpg
+                gpg --import $gpg_file
+            fi
         fi
     fi
 
@@ -1509,6 +1650,9 @@ app_run_github_update()
 
 app_run_github_precheck()
 {
+
+    git config --global credential.helper store
+
     # see if repo directory is in safelist for git
     if git config --global --get-all safe.directory | grep -q "$app_dir"; then
         bFoundSafe=true
