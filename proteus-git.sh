@@ -294,12 +294,6 @@ lst_arch=(
 )
 
 ##--------------------------------------------------------------------------
-#   vars > repo update
-##--------------------------------------------------------------------------
-
-app_repo_commit="auto-update [ $sys_code ] @ $NOW"
-
-##--------------------------------------------------------------------------
 #   distro
 #
 #   returns distro information.
@@ -1691,6 +1685,7 @@ app_run_github_push()
 
     sleep 1
 
+    local app_repo_commit="auto-update [ $sys_code ] @ $NOW"
     git commit -S -m "$app_repo_commit"
 
     sleep 1
@@ -1732,6 +1727,7 @@ EOF
 
     sleep 1
 
+    local app_repo_commit="auto-update [ $sys_code ] @ $NOW"
     git commit -S -m "$app_repo_commit"
 
     sleep 1
