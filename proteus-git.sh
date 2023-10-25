@@ -1667,7 +1667,7 @@ app_run_github_precheck()
 #   upload to github
 ##--------------------------------------------------------------------------
 
-app_run_github_push()
+app_run_github_end()
 {
     app_run_github_precheck
 
@@ -1685,7 +1685,7 @@ app_run_github_push()
 
     sleep 1
 
-    local app_repo_commit="auto-update [ $sys_code ] @ $NOW"
+    local app_repo_commit="[E] auto-update [ $sys_code ] @ $NOW"
     git commit -S -m "$app_repo_commit"
 
     sleep 1
@@ -1693,7 +1693,7 @@ app_run_github_push()
     git push -u origin $app_repo_branch
 }
 
-app_run_start()
+app_run_github_start()
 {
 
     ##--------------------------------------------------------------------------
@@ -1727,7 +1727,7 @@ EOF
 
     sleep 1
 
-    local app_repo_commit="auto-update [ $sys_code ] @ $NOW"
+    local app_repo_commit="[S] auto-update [ $sys_code ] @ $NOW"
     git commit -S -m "$app_repo_commit"
 
     sleep 1
@@ -1834,21 +1834,21 @@ app_start()
     ##--------------------------------------------------------------------------
 
     if [ -n "${OPT_ONLY_GIT}" ]; then
-        app_run_start
+        app_run_github_start
         app_run_github_update
         app_run_tree_update
-        app_run_github_push
+        app_run_github_end
     elif [ -n "${OPT_ONLY_SRC}" ]; then
-        app_run_start
+        app_run_github_start
         app_run_aptsource_update
         app_run_tree_update
-        app_run_github_push
+        app_run_github_end
     else
-        app_run_start
+        app_run_github_start
         app_run_aptsource_update
         app_run_github_update
         app_run_tree_update
-        app_run_github_push
+        app_run_github_end
     fi
 
     ##--------------------------------------------------------------------------
