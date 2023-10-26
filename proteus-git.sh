@@ -56,7 +56,7 @@ DEV=$(tput setaf 157)
 DEVGREY=$(tput setaf 243)
 FUCHSIA=$(tput setaf 198)
 PINK=$(tput setaf 200)
-BRIGHT=$(tput bold)
+BOLD=$(tput bold)
 NORMAL=$(tput sgr0)
 BLINK=$(tput blink)
 REVERSE=$(tput smso)
@@ -333,10 +333,10 @@ fi
 
 if ! [ -f secrets.sh ]; then
     echo
-    echo -e "  ${BRIGHT}${ORANGE}WARNING  ${WHITE}secrets.sh file not found${NORMAL}"
-    echo -e "  ${BRIGHT}${WHITE}Must create a ${FUCHSIA}secrets.sh${WHITE} file.${NORMAL}"
-    echo -e "  ${BRIGHT}${WHITE}This file defines things such as your${NORMAL}"
-    echo -e "  ${BRIGHT}${WHITE}GPG key and Github Personal Token.${NORMAL}"
+    echo -e "  ${BOLD}${ORANGE}WARNING  ${WHITE}secrets.sh file not found${NORMAL}"
+    echo -e "  ${BOLD}${WHITE}Must create a ${FUCHSIA}secrets.sh${WHITE} file.${NORMAL}"
+    echo -e "  ${BOLD}${WHITE}This file defines things such as your${NORMAL}"
+    echo -e "  ${BOLD}${WHITE}GPG key and Github Personal Token.${NORMAL}"
     echo
 
     printf "  Press any key to abort ... ${NORMAL}"
@@ -353,10 +353,10 @@ fi
 
 if [ -z "${GPG_KEY}" ]; then
     echo
-    echo -e "  ${BRIGHT}${ORANGE}WARNING  ${WHITE}GPG Key not specified${NORMAL}"
-    echo -e "  ${BRIGHT}${WHITE}Must create a ${FUCHSIA}secrets.sh${WHITE} file and define your GPG key.${NORMAL}"
+    echo -e "  ${BOLD}${ORANGE}WARNING  ${WHITE}GPG Key not specified${NORMAL}"
+    echo -e "  ${BOLD}${WHITE}Must create a ${FUCHSIA}secrets.sh${WHITE} file and define your GPG key.${NORMAL}"
     echo
-    echo -e "  ${BRIGHT}${WHITE}    ${RED}export ${GREEN}GPG_KEY=${WHITE}XXXXXXXX${NORMAL}"
+    echo -e "  ${BOLD}${WHITE}    ${RED}export ${GREEN}GPG_KEY=${WHITE}XXXXXXXX${NORMAL}"
     echo
 
     printf "  Press any key to abort ... ${NORMAL}"
@@ -373,15 +373,15 @@ fi
 
 if [ -z "${GITHUB_API_TOKEN}" ] && [ -z "${GITLAB_API_TOKEN}" ]; then
     echo
-    echo -e "  ${BRIGHT}${ORANGE}WARNING  ${WHITE}Missing ${YELLOW}API Tokens${WHITE}${NORMAL}"
-    echo -e "  ${BRIGHT}${WHITE}Must create a ${FUCHSIA}secrets.sh${WHITE} file and define an API token${NORMAL}"
-    echo -e "  ${BRIGHT}${WHITE}for either Github or Gitlab.${NORMAL}"
+    echo -e "  ${BOLD}${ORANGE}WARNING  ${WHITE}Missing ${YELLOW}API Tokens${WHITE}${NORMAL}"
+    echo -e "  ${BOLD}${WHITE}Must create a ${FUCHSIA}secrets.sh${WHITE} file and define an API token${NORMAL}"
+    echo -e "  ${BOLD}${WHITE}for either Github or Gitlab.${NORMAL}"
     echo
-    echo -e "  ${BRIGHT}${WHITE}    ${RED}export ${GREEN}GITHUB_API_TOKEN=${WHITE}XXXXXXX${NORMAL}"
-    echo -e "  ${BRIGHT}${WHITE}    ${RED}export ${GREEN}GITLAB_PA_TOKEN=${WHITE}XXXXXXX${NORMAL}"
+    echo -e "  ${BOLD}${WHITE}    ${RED}export ${GREEN}GITHUB_API_TOKEN=${WHITE}XXXXXXX${NORMAL}"
+    echo -e "  ${BOLD}${WHITE}    ${RED}export ${GREEN}GITLAB_PA_TOKEN=${WHITE}XXXXXXX${NORMAL}"
     echo
-    echo -e "  ${BRIGHT}${WHITE}Without supplying this, you will be rate limited.${NORMAL}"
-    echo -e "  ${BRIGHT}${WHITE}on queries using ${YELLOW}LastVersion${WHITE}${NORMAL}"
+    echo -e "  ${BOLD}${WHITE}Without supplying this, you will be rate limited.${NORMAL}"
+    echo -e "  ${BOLD}${WHITE}on queries using ${YELLOW}LastVersion${WHITE}${NORMAL}"
     echo
 
     printf "  Press any key to abort ... ${NORMAL}"
@@ -399,20 +399,20 @@ fi
 checkgit_signing=$( git config --global --get-all user.signingKey )
 if [ -z "${checkgit_signing}" ]; then
     echo
-    echo -e "  ${BRIGHT}${ORANGE}WARNING  ${WHITE}Missing ${YELLOW}user.signingKey${WHITE} in ${YELLOW}/home/${USER}/.gitconfig${NORMAL}"
-    echo -e "  ${BRIGHT}${WHITE}You should have the below entries in your ${FUCHSIA}.gitconfig${WHITE}:${NORMAL}"
+    echo -e "  ${BOLD}${ORANGE}WARNING  ${WHITE}Missing ${YELLOW}user.signingKey${WHITE} in ${YELLOW}/home/${USER}/.gitconfig${NORMAL}"
+    echo -e "  ${BOLD}${WHITE}You should have the below entries in your ${FUCHSIA}.gitconfig${WHITE}:${NORMAL}"
     echo
-    echo -e "  ${BRIGHT}${WHITE}    ${GREYL}[user]${NORMAL}"
-    echo -e "  ${BRIGHT}${WHITE}         ${BLUE}signingKey${WHITE} = ${GPG_KEY}${NORMAL}"
+    echo -e "  ${BOLD}${WHITE}    ${GREYL}[user]${NORMAL}"
+    echo -e "  ${BOLD}${WHITE}         ${BLUE}signingKey${WHITE} = ${GPG_KEY}${NORMAL}"
     echo
-    echo -e "  ${BRIGHT}${WHITE}    ${GREYL}[commit]${NORMAL}"
-    echo -e "  ${BRIGHT}${WHITE}         ${BLUE}gpgsign${WHITE} = true${NORMAL}"
+    echo -e "  ${BOLD}${WHITE}    ${GREYL}[commit]${NORMAL}"
+    echo -e "  ${BOLD}${WHITE}         ${BLUE}gpgsign${WHITE} = true${NORMAL}"
     echo
-    echo -e "  ${BRIGHT}${WHITE}    ${GREYL}[gpg]${NORMAL}"
-    echo -e "  ${BRIGHT}${WHITE}         ${BLUE}program${WHITE} = gpg${NORMAL}"
+    echo -e "  ${BOLD}${WHITE}    ${GREYL}[gpg]${NORMAL}"
+    echo -e "  ${BOLD}${WHITE}         ${BLUE}program${WHITE} = gpg${NORMAL}"
     echo
-    echo -e "  ${BRIGHT}${WHITE}    ${GREYL}[tag]${NORMAL}"
-    echo -e "  ${BRIGHT}${WHITE}         ${BLUE}forceSignAnnotated${WHITE} = true${NORMAL}"
+    echo -e "  ${BOLD}${WHITE}    ${GREYL}[tag]${NORMAL}"
+    echo -e "  ${BOLD}${WHITE}         ${BLUE}forceSignAnnotated${WHITE} = true${NORMAL}"
     echo
 
     git config --global gpg.program gpg
@@ -423,19 +423,19 @@ if [ -z "${checkgit_signing}" ]; then
 
     sleep 1
 
-    echo -e "  ${BRIGHT}${WHITE}Automatically adding these values to your ${FUCHSIA}.gitconfig${WHITE}:${NORMAL}"
+    echo -e "  ${BOLD}${WHITE}Automatically adding these values to your ${FUCHSIA}.gitconfig${WHITE}:${NORMAL}"
 
     sleep 2
 
     checkgit_signing=$( git config --global --get-all user.signingKey )
     if [ -z "${checkgit_signing}" ]; then
         echo
-        echo -e "  ${BRIGHT}${ORANGE}WARNING  ${WHITE}Could not add the above entries to ${YELLOW}/home/${USER}/.gitconfig${NORMAL}"
-        echo -e "  ${BRIGHT}${WHITE}You will need to manually add these entries.${WHITE}:${NORMAL}"
+        echo -e "  ${BOLD}${ORANGE}WARNING  ${WHITE}Could not add the above entries to ${YELLOW}/home/${USER}/.gitconfig${NORMAL}"
+        echo -e "  ${BOLD}${WHITE}You will need to manually add these entries.${WHITE}:${NORMAL}"
         echo
     else
         echo
-        echo -e "  ${BRIGHT}${GREEN}SUCCESS  ${WHITE}Entries added to ${YELLOW}/home/${USER}/.gitconfig${NORMAL}"
+        echo -e "  ${BOLD}${GREEN}SUCCESS  ${WHITE}Entries added to ${YELLOW}/home/${USER}/.gitconfig${NORMAL}"
         echo
     fi
 fi
@@ -1173,10 +1173,10 @@ app_setup()
 
     if [ -z "${GPG_KEY}" ]; then
         echo
-        echo -e "  ${BRIGHT}${ORANGE}WARNING  ${WHITE}GPG Key not specified${NORMAL}"
-        echo -e "  ${BRIGHT}${WHITE}Must create a ${FUCHSIA}secrets.sh${WHITE} file and define your GPG key.${NORMAL}"
+        echo -e "  ${BOLD}${ORANGE}WARNING  ${WHITE}GPG Key not specified${NORMAL}"
+        echo -e "  ${BOLD}${WHITE}Must create a ${FUCHSIA}secrets.sh${WHITE} file and define your GPG key.${NORMAL}"
         echo
-        echo -e "  ${BRIGHT}${WHITE}    ${RED}export ${GREEN}GPG_KEY=${WHITE}XXXXXXXX${NORMAL}"
+        echo -e "  ${BOLD}${WHITE}    ${RED}export ${GREEN}GPG_KEY=${WHITE}XXXXXXXX${NORMAL}"
         echo
 
         printf "  Press any key to abort ... ${NORMAL}"
@@ -1714,7 +1714,7 @@ tee $manifest_dir/$sys_code.json >/dev/null <<EOF
     "author":           "${app_repo_author}",
     "description":      "${app_about}",
     "url":              "${app_repo_url}",
-    "last_update":      "Running ........",
+    "last_update":      "Running ............",
     "last_update_ts":   "${DATE_TS}"
 }
 EOF
