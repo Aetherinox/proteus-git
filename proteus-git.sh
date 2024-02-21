@@ -1041,6 +1041,7 @@ app_setup()
     local bMissingTree=false
     local bMissingGPG=false
     local bMissingRepo=false
+    local bMissingReprepro=false
 
     # require whiptail
     if ! [ -x "$(command -v apt-move)" ]; then
@@ -1060,6 +1061,11 @@ app_setup()
     # require tree
     if ! [ -x "$(command -v tree)" ]; then
         bMissingTree=true
+    fi
+
+    # require reprepro
+    if ! [ -x "$(command -v reprepro)" ]; then
+        bMissingReprepro=true
     fi
 
     ##--------------------------------------------------------------------------
@@ -1083,7 +1089,7 @@ app_setup()
 
     # Check if contains title
     # If so, called from another function
-    if [ "$bMissingAptmove" = true ] || [ "$bMissingCurl" = true ] || [ "$bMissingWget" = true ] || [ "$bMissingTree" = true ] || [ "$bMissingGPG" = true ] || [ "$bMissingRepo" = true ] || [ -n "${OPT_DEV_NULLRUN}" ]; then
+    if [ "$bMissingAptmove" = true ] || [ "$bMissingCurl" = true ] || [ "$bMissingWget" = true ] || [ "$bMissingTree" = true ] || [ "$bMissingGPG" = true ] || [ "$bMissingRepo" = true ] || [ "$bMissingReprepro" = true ] || [ -n "${OPT_DEV_NULLRUN}" ]; then
         echo
         title "Addressing Dependencies ..."
         echo
@@ -1203,8 +1209,8 @@ app_setup()
             echo
             echo
 
-	    printf "  Press any key to continue ... ${NORMAL}"
-	    read -n 1 -s -r -p ""
+            printf "  Press any key to continue ... ${NORMAL}"
+            read -n 1 -s -r -p ""
 
             if [ -f $app_dir/.gpg/*.gpg ]; then
                 gpg_file=$app_dir/.gpg/*.gpg
@@ -1279,6 +1285,25 @@ app_setup()
             sudo chgrp ${USER} ${app_file_proteus} >> $LOGS_FILE 2>&1
             sudo chown ${USER} ${app_file_proteus} >> $LOGS_FILE 2>&1
             sudo chmod u+x ${app_file_proteus} >> $LOGS_FILE 2>&1
+        fi
+
+        sleep 0.5
+        echo -e "[ ${STATUS_OK} ]"
+    fi
+
+    ##--------------------------------------------------------------------------
+    #   missing reprepro
+    ##--------------------------------------------------------------------------
+
+    if [ "$bMissingReprepro" = true ] || [ -n "${OPT_DEV_NULLRUN}" ]; then
+        printf "%-50s %-5s\n" "${TIME}      Installing reprepro package" | tee -a "${LOGS_FILE}" >/dev/null
+
+        printf '%-50s %-5s' "    |--- Adding reprepro package" ""
+        sleep 0.5
+
+        if [ -z "${OPT_DEV_NULLRUN}" ]; then
+            sudo apt-get update -y -q >> /dev/null 2>&1
+            sudo apt-get install reprepro -y -qq >> /dev/null 2>&1
         fi
 
         sleep 0.5
@@ -1660,6 +1685,7 @@ app_run_github_precheck()
 
     git config --global user.name $app_repo_user
     git config --global user.email $app_repo_email
+    ##git config --global pull.rebase true
 
     sleep 1
 }
@@ -1814,7 +1840,7 @@ app_start()
     #   pull all changes from github
     ##--------------------------------------------------------------------------
 
-    git_pull=$( git pull )
+    git_pull=$( git pull origin $app_repo_branch )
 
     echo -e "  ${GREYL}Git Pull${WHITE}"
     echo -e "  ${WHITE}${git_pull}${NORMAL}"
@@ -1828,6 +1854,28 @@ app_start()
 
     if [ -x "$(command -v reprepro)" ]; then
         bRep=true
+    fi
+
+    ##--------------------------------------------------------------------------
+    #   reprepro missing
+    ##--------------------------------------------------------------------------
+
+    if [ -z "${bRep}" ]; then
+        echo
+        echo -e "  ${BOLD}${ORANGE}WARNING  ${WHITE}Reprepro Missing${NORMAL}"
+        echo -e "  ${BOLD}${WHITE}It appears the package ${FUCHSIA}Reprepro${WHITE} is missing.${NORMAL}"
+        echo
+        echo -e "  ${BOLD}${WHITE}Try installing the package with:${NORMAL}"
+        echo -e "  ${BOLD}${WHITE}     sudo apt-get update${NORMAL}"
+        echo -e "  ${BOLD}${WHITE}     sudo apt-get install reprepro${NORMAL}"
+        echo
+
+        printf "  Press any key to abort ... ${NORMAL}"
+        read -n 1 -s -r -p ""
+
+        echo
+        echo
+        exit 1
     fi
 
     ##--------------------------------------------------------------------------
