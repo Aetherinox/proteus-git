@@ -5,7 +5,7 @@ echo
 ##--------------------------------------------------------------------------
 #   @author :           aetherinox
 #   @script :           Proteus Apt Git
-#   @when   :           2023-10-23 10:03:55
+#   @when   :           2024-02-20 18:33:03
 #   @url    :           https://github.com/Aetherinox/proteus-git
 #
 #   requires chmod +x proteus_git.sh
@@ -84,7 +84,7 @@ app_file_proteus="${app_dir_home}/proteus-git"
 app_repo_author="Aetherinox"
 app_title="Proteus Apt Git"
 app_about="Internal system to Proteus App Manager which grabs debian packages."
-app_ver=("1" "0" "0" "0")
+app_ver=("1" "1" "0" "0")
 app_repo="proteus-git"
 app_repo_branch="main"
 app_repo_user=$( git config --global --get-all user.name )
@@ -1203,6 +1203,9 @@ app_setup()
             echo
             echo
 
+	    printf "  Press any key to continue ... ${NORMAL}"
+	    read -n 1 -s -r -p ""
+
             if [ -f $app_dir/.gpg/*.gpg ]; then
                 gpg_file=$app_dir/.gpg/*.gpg
                 gpg --import $gpg_file
@@ -1580,7 +1583,6 @@ app_run_dl_gh()
                         if [ -n "${bRep}" ] && [ -z "${OPT_DEV_NULLRUN}" ]; then
                             #   full path to deb package
                             deb_package="$app_dir_repo/$arch/$app_filename"
-                            echo "$sys_code $deb_package"
                             reprepro -V \
                                 --section utils \
                                 --component main \
@@ -1598,7 +1600,6 @@ app_run_dl_gh()
                         if [ -n "${bRep}" ] && [ -z "${OPT_DEV_NULLRUN}" ]; then
                             #   full path to deb package
                             deb_package="$app_dir_repo/$arch/$app_filename"
-                            echo "$sys_code $deb_package"
                             reprepro -V \
                                 --section utils \
                                 --component main \
