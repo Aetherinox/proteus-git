@@ -9,7 +9,7 @@
 <br />
 
 ## About
-The `.gpg` folder allows you to drop your own `*.gpg` binary key inside and have Proteus Apt Git automatically import that key the next time you launch the script.
+The `.gpg` folder allows you to drop your own `*.gpg` binary key inside and have [Proteus .Deb Package Update Script](https://github.com/Aetherinox/proteus-git) to automatically import that key the next time you launch the script.
 
 To specify the primary GPG key you wish to use when signing your repo packages, create or open the `secrets.sh` file in the root directory of your proteus-git folder and add a `GPG_KEY` value.
 
