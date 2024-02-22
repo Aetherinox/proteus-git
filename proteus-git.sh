@@ -352,8 +352,6 @@ app_run_github_precheck( )
     git config --global user.name ${GITHUB_NAME}
     git config --global user.email ${GITHUB_EMAIL}
     ##git config --global pull.rebase true
-
-    sleep 1
 }
 
 ##--------------------------------------------------------------------------
@@ -1444,6 +1442,7 @@ app_setup
 ##--------------------------------------------------------------------------
 
 if [ ! -d .git ]; then
+
     echo
     echo
     echo -e "  ${ORANGE}Error${WHITE}"
@@ -1875,11 +1874,16 @@ EOF
     sleep 1
 
     local app_repo_commit="[S] auto-update [ $app_repo_dist_sel ] @ $NOW"
-    git commit -S -m "$app_repo_commit"
+
+    echo -e "  ${WHITE}Starting commit ${FUCHSIA}${app_repo_commit}${WHITE}${NORMAL}"
+
+    git commit -S -m "[S] auto-update [ jammy ] @ 02.22.2024 00:29:44"
 
     sleep 1
 
+    echo -e "  ${WHITE}Starting push ${FUCHSIA}${app_repo_branch}${WHITE}${NORMAL}"
     git push -u origin $app_repo_branch
+
 }
 
 ##--------------------------------------------------------------------------
