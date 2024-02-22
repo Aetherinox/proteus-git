@@ -1880,7 +1880,7 @@ app_run_tree_update()
     ##--------------------------------------------------------------------------
 
     duration=$SECONDS
-    elapsed="$(($duration / 60)) minutes and $(( $duration % 60 )) seconds elapsed."
+    elapsed="$(($duration / 60))m and $(( $duration % 60 ))s"
 
     ##--------------------------------------------------------------------------
     #   .app folder > create .json
