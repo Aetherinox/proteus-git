@@ -1342,13 +1342,13 @@ app_setup()
     ##--------------------------------------------------------------------------
 
     if [ "$bMissingRepo" = true ] || [ -n "${OPT_DEV_NULLRUN}" ]; then
-        printf "%-50s %-5s\n" "${TIME}      Registering ${app_repo_apt}: https://raw.githubusercontent.com/${app_repo_author}/${app_repo_apt}/master" | tee -a "${LOGS_FILE}" >/dev/null
+        printf "%-50s %-5s\n" "${TIME}      Registering ${app_repo_apt}: https://raw.githubusercontent.com/${app_repo_author}/${app_repo_apt}/${app_repo_branch}" | tee -a "${LOGS_FILE}" >/dev/null
 
         printf '%-50s %-5s' "    |--- Registering ${app_repo_apt}" ""
         sleep 0.5
 
         if [ -z "${OPT_DEV_NULLRUN}" ]; then
-            echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/${app_repo_apt_pkg}.gpg] https://raw.githubusercontent.com/${app_repo_author}/${app_repo_apt}/master $(lsb_release -cs) ${app_repo_branch}" | sudo tee /etc/apt/sources.list.d/${app_repo_apt_pkg}.list >/dev/null
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/${app_repo_apt_pkg}.gpg] https://raw.githubusercontent.com/${app_repo_author}/${app_repo_apt}//${app_repo_branch} $(lsb_release -cs) ${app_repo_branch}" | sudo tee /etc/apt/sources.list.d/${app_repo_apt_pkg}.list >/dev/null
         fi
 
         sleep 0.5
@@ -1816,6 +1816,10 @@ app_run_gh_end()
     git push -u origin $app_repo_branch
 }
 
+##--------------------------------------------------------------------------
+#   start github process
+##--------------------------------------------------------------------------
+
 app_run_gh_start()
 {
 
@@ -1872,6 +1876,13 @@ app_run_tree_update()
     mkdir -p            $manifest_dir
 
     ##--------------------------------------------------------------------------
+    #   duration elapsed
+    ##--------------------------------------------------------------------------
+
+    duration=$SECONDS
+    elapsed="$(($duration / 60)) minutes and $(( $duration % 60 )) seconds elapsed."
+
+    ##--------------------------------------------------------------------------
     #   .app folder > create .json
     ##--------------------------------------------------------------------------
 
@@ -1882,6 +1893,7 @@ tee $manifest_dir/$sys_code.json >/dev/null <<EOF
     "author":           "${app_repo_author}",
     "description":      "${app_about}",
     "url":              "${app_repo_url}",
+    "last_duration":    "${elapsed}",
     "last_update":      "${NOW}",
     "last_update_ts":   "${DATE_TS}"
 }
@@ -2005,6 +2017,7 @@ app_start()
 
     duration=$SECONDS
     elapsed="$(($duration / 60)) minutes and $(( $duration % 60 )) seconds elapsed."
+
     printf "%-57s %-15s\n\n\n\n" "${TIME}      ${elapsed}" | tee -a "${LOGS_FILE}" >/dev/null
 
     echo
