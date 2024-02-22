@@ -328,7 +328,36 @@ else
 fi
 
 ##--------------------------------------------------------------------------
-#   check > secrets file
+#   upload to github > precheck
+##--------------------------------------------------------------------------
+
+app_run_github_precheck( )
+{
+
+    echo -e "  ${GREYL}Registering Github Config Entries${WHITE}"
+
+    git config --global credential.helper store
+
+    # see if repo directory is in safelist for git
+    if git config --global --get-all safe.directory | grep -q "$app_dir"; then
+        bFoundSafe=true
+    fi
+
+    # if new repo, add to safelist
+    if ! [ $bFoundSafe ]; then
+        git config --global --add safe.directory $app_dir
+    fi
+
+    git config --global init.defaultBranch ${app_repo_branch}
+    git config --global user.name ${GITHUB_NAME}
+    git config --global user.email ${GITHUB_EMAIL}
+    ##git config --global pull.rebase true
+
+    sleep 1
+}
+
+##--------------------------------------------------------------------------
+#   check > secrets file doesnt exist
 ##--------------------------------------------------------------------------
 
 if ! [ -f secrets.sh ]; then
@@ -341,55 +370,13 @@ if ! [ -f secrets.sh ]; then
 
     printf "  Press any key to abort ... ${NORMAL}"
     read -n 1 -s -r -p ""
-
     echo
-    echo
-    exit 1
-fi
-
-##--------------------------------------------------------------------------
-#   check > GPG key
-##--------------------------------------------------------------------------
-
-if [ -z "${GPG_KEY}" ]; then
-    echo
-    echo -e "  ${BOLD}${ORANGE}WARNING  ${WHITE}GPG Key not specified${NORMAL}"
-    echo -e "  ${BOLD}${WHITE}Must create a ${FUCHSIA}secrets.sh${WHITE} file and define your GPG key.${NORMAL}"
-    echo
-    echo -e "  ${BOLD}${WHITE}    ${RED}export ${GREEN}GPG_KEY=${WHITE}XXXXXXXX${NORMAL}"
     echo
 
-    printf "  Press any key to abort ... ${NORMAL}"
-    read -n 1 -s -r -p ""
-
-    echo
-    echo
-    exit 1
-fi
-
-##--------------------------------------------------------------------------
-#   check > Github / Gitlab API tokens
-##--------------------------------------------------------------------------
-
-if [ -z "${GITHUB_API_TOKEN}" ] && [ -z "${GITLAB_API_TOKEN}" ]; then
-    echo
-    echo -e "  ${BOLD}${ORANGE}WARNING  ${WHITE}Missing ${YELLOW}API Tokens${WHITE}${NORMAL}"
-    echo -e "  ${BOLD}${WHITE}Must create a ${FUCHSIA}secrets.sh${WHITE} file and define an API token${NORMAL}"
-    echo -e "  ${BOLD}${WHITE}for either Github or Gitlab.${NORMAL}"
-    echo
-    echo -e "  ${BOLD}${WHITE}    ${RED}export ${GREEN}GITHUB_API_TOKEN=${WHITE}XXXXXXX${NORMAL}"
-    echo -e "  ${BOLD}${WHITE}    ${RED}export ${GREEN}GITLAB_PA_TOKEN=${WHITE}XXXXXXX${NORMAL}"
-    echo
-    echo -e "  ${BOLD}${WHITE}Without supplying this, you will be rate limited.${NORMAL}"
-    echo -e "  ${BOLD}${WHITE}on queries using ${YELLOW}LastVersion${WHITE}${NORMAL}"
-    echo
-
-    printf "  Press any key to abort ... ${NORMAL}"
-    read -n 1 -s -r -p ""
-
-    echo
-    echo
-    exit 1
+    set +m
+    trap "kill -9 $app_pid 2> /dev/null" `seq 0 15`
+    kill $app_pid
+    set -m
 fi
 
 ##--------------------------------------------------------------------------
@@ -438,6 +425,57 @@ if [ -z "${checkgit_signing}" ]; then
         echo -e "  ${BOLD}${GREEN}SUCCESS  ${WHITE}Entries added to ${YELLOW}/home/${USER}/.gitconfig${NORMAL}"
         echo
     fi
+fi
+
+##--------------------------------------------------------------------------
+#   check > GPG key
+##--------------------------------------------------------------------------
+
+if [ -z "${GPG_KEY}" ]; then
+    echo
+    echo -e "  ${BOLD}${ORANGE}WARNING  ${WHITE}GPG Key not specified${NORMAL}"
+    echo -e "  ${BOLD}${WHITE}Must create a ${FUCHSIA}secrets.sh${WHITE} file and define your GPG key.${NORMAL}"
+    echo
+    echo -e "  ${BOLD}${WHITE}    ${RED}export ${GREEN}GPG_KEY=${WHITE}XXXXXXXX${NORMAL}"
+    echo
+
+    printf "  Press any key to abort ... ${NORMAL}"
+    read -n 1 -s -r -p ""
+    echo
+    echo
+
+    set +m
+    trap "kill -9 $app_pid 2> /dev/null" `seq 0 15`
+    kill $app_pid
+    set -m
+fi
+
+##--------------------------------------------------------------------------
+#   check > Github / Gitlab API tokens
+##--------------------------------------------------------------------------
+
+if [ -z "${GITHUB_API_TOKEN}" ] && [ -z "${GITLAB_API_TOKEN}" ]; then
+    echo
+    echo -e "  ${BOLD}${ORANGE}WARNING  ${WHITE}Missing ${YELLOW}API Tokens${WHITE}${NORMAL}"
+    echo -e "  ${BOLD}${WHITE}Must create a ${FUCHSIA}secrets.sh${WHITE} file and define an API token${NORMAL}"
+    echo -e "  ${BOLD}${WHITE}for either Github or Gitlab.${NORMAL}"
+    echo
+    echo -e "  ${BOLD}${WHITE}    ${RED}export ${GREEN}GITHUB_API_TOKEN=${WHITE}XXXXXXX${NORMAL}"
+    echo -e "  ${BOLD}${WHITE}    ${RED}export ${GREEN}GITLAB_API_TOKEN=${WHITE}XXXXXXX${NORMAL}"
+    echo
+    echo -e "  ${BOLD}${WHITE}Without supplying this, you will be rate limited.${NORMAL}"
+    echo -e "  ${BOLD}${WHITE}on queries using ${YELLOW}LastVersion${WHITE}${NORMAL}"
+    echo
+
+    printf "  Press any key to abort ... ${NORMAL}"
+    read -n 1 -s -r -p ""
+    echo
+    echo
+
+    set +m
+    trap "kill -9 $app_pid 2> /dev/null" `seq 0 15`
+    kill $app_pid
+    set -m
 fi
 
 ##--------------------------------------------------------------------------
@@ -1036,16 +1074,23 @@ app_setup()
     clear
 
     local bMissingAptmove=false
+    local bMissingAptUrl=false
     local bMissingCurl=false
     local bMissingWget=false
     local bMissingTree=false
     local bMissingGPG=false
     local bMissingRepo=false
     local bMissingReprepro=false
+    local bGPGLoaded=false
 
     # require whiptail
     if ! [ -x "$(command -v apt-move)" ]; then
         bMissingAptmove=true
+    fi
+
+    # require whiptail
+    if ! [ -x "$(command -v apt-url)" ]; then
+        bMissingAptUrl=true
     fi
 
     # require curl
@@ -1089,7 +1134,7 @@ app_setup()
 
     # Check if contains title
     # If so, called from another function
-    if [ "$bMissingAptmove" = true ] || [ "$bMissingCurl" = true ] || [ "$bMissingWget" = true ] || [ "$bMissingTree" = true ] || [ "$bMissingGPG" = true ] || [ "$bMissingRepo" = true ] || [ "$bMissingReprepro" = true ] || [ -n "${OPT_DEV_NULLRUN}" ]; then
+    if [ "$bMissingAptmove" = true ] || [ "$bMissingAptUrl" = true ] || [ "$bMissingCurl" = true ] || [ "$bMissingWget" = true ] || [ "$bMissingTree" = true ] || [ "$bMissingGPG" = true ] || [ "$bMissingRepo" = true ] || [ "$bMissingReprepro" = true ] || [ -n "${OPT_DEV_NULLRUN}" ]; then
         echo
         title "Addressing Dependencies ..."
         echo
@@ -1097,7 +1142,7 @@ app_setup()
     fi
 
     ##--------------------------------------------------------------------------
-    #   missing whiptail
+    #   missing apt-move
     ##--------------------------------------------------------------------------
 
     if [ "$bMissingAptmove" = true ] || [ -n "${OPT_DEV_NULLRUN}" ]; then
@@ -1109,6 +1154,25 @@ app_setup()
         if [ -z "${OPT_DEV_NULLRUN}" ]; then
             sudo apt-get update -y -q >> /dev/null 2>&1
             sudo apt-get install apt-move -y -qq >> /dev/null 2>&1
+        fi
+
+        sleep 0.5
+        echo -e "[ ${STATUS_OK} ]"
+    fi
+
+    ##--------------------------------------------------------------------------
+    #   missing apt-url
+    ##--------------------------------------------------------------------------
+
+    if [ "$bMissingAptUrl" = true ] || [ -n "${OPT_DEV_NULLRUN}" ]; then
+        printf "%-50s %-5s\n" "${TIME}      Installing apt-url package" | tee -a "${LOGS_FILE}" >/dev/null
+
+        printf '%-50s %-5s' "    |--- Adding apt-url package" ""
+        sleep 0.5
+
+        if [ -z "${OPT_DEV_NULLRUN}" ]; then
+            sudo apt-get update -y -q >> /dev/null 2>&1
+            sudo apt-get install apt-url -y -qq >> /dev/null 2>&1
         fi
 
         sleep 0.5
@@ -1187,16 +1251,21 @@ app_setup()
 
         printf "  Press any key to abort ... ${NORMAL}"
         read -n 1 -s -r -p ""
+        echo
+        echo
 
-        echo
-        echo
-        exit 1
+        set +m
+        trap "kill -9 $app_pid 2> /dev/null" `seq 0 15`
+        kill $app_pid
+        set -m
     else
         gpg_id=$( gpg --list-secret-keys --keyid-format=long | grep $GPG_KEY )
         if [[ $? == 0 ]]; then 
             echo
             echo -e "  ${WHITE}GPG key ${GREEN}${GPG_KEY}${NORMAL} found."
             echo
+
+            bGPGLoaded=true
 
             sleep 5
         else
@@ -1211,12 +1280,43 @@ app_setup()
 
             printf "  Press any key to continue ... ${NORMAL}"
             read -n 1 -s -r -p ""
+            echo
 
             if [ -f $app_dir/.gpg/*.gpg ]; then
                 gpg_file=$app_dir/.gpg/*.gpg
                 gpg --import $gpg_file
+                bGPGLoaded=true
             fi
         fi
+    fi
+
+    ##--------------------------------------------------------------------------
+    #   missing gpg key after searching numerous places, including .gpg folder
+    ##--------------------------------------------------------------------------
+
+    if [ "$bGPGLoaded" = false ]; then
+        echo
+        echo
+        echo -e "  ${BOLD}${ORANGE}WARNING  ${WHITE}Private GPG key not found${NORMAL}"
+        echo
+        echo -e "  ${WHITE}You must have a private GPG key imported to use this program.${NORMAL}"
+        echo -e "  ${WHITE}Your private GPG key is used to sign commits and the deb package${NORMAL}"
+        echo -e "  ${WHITE}repositories that you upload.${NORMAL}"
+        echo
+        echo -e "  ${WHITE}You must either add a private .gpg keyfile to the folder:${NORMAL}"
+        echo -e "       ${YELLOW}$app_dir/.gpg/${NORMAL}"
+        echo -e "  ${WHITE}Or manually import a GPG key to your system's GPG keyring${NORMAL}"
+        echo
+
+        printf "  Press any key to abort ... ${NORMAL}"
+        read -n 1 -s -r -p ""
+        echo
+        echo
+
+        set +m
+        trap "kill -9 $app_pid 2> /dev/null" `seq 0 15`
+        kill $app_pid
+        set -m
     fi
 
     ##--------------------------------------------------------------------------
@@ -1320,6 +1420,28 @@ app_setup()
 
 }
 app_setup
+
+##--------------------------------------------------------------------------
+#   .git folder doesnt exist
+##--------------------------------------------------------------------------
+
+if [ ! -d .git ]; then
+    echo
+    echo
+    echo -e "  ${ORANGE}Error${WHITE}"
+    echo -e "  "
+    echo -e "  ${WHITE}Folder ${YELLOW}.git${NORMAL} does not exist."
+    echo -e "  ${WHITE}Must clone the ${YELLOW}proteus-apt-repo${NORMAL} first."
+    echo
+    echo
+
+    app_run_github_precheck
+
+    git init --initial-branch=${app_repo_branch}
+    git add .;git commit -m'Proteus-Git Setup'
+    git remote add origin https://github.com/Aetherinox/proteus-apt-repo.git
+    git pull origin ${app_repo_branch} --allow-unrelated-histories
+fi
 
 ##--------------------------------------------------------------------------
 #   output some logging
@@ -1665,32 +1787,6 @@ app_run_dl_gh()
 }
 
 ##--------------------------------------------------------------------------
-#   upload to github > precheck
-##--------------------------------------------------------------------------
-
-app_run_github_precheck()
-{
-
-    git config --global credential.helper store
-
-    # see if repo directory is in safelist for git
-    if git config --global --get-all safe.directory | grep -q "$app_dir"; then
-        bFoundSafe=true
-    fi
-
-    # if new repo, add to safelist
-    if ! [ $bFoundSafe ]; then
-        git config --global --add safe.directory $app_dir
-    fi
-
-    git config --global user.name $app_repo_user
-    git config --global user.email $app_repo_email
-    ##git config --global pull.rebase true
-
-    sleep 1
-}
-
-##--------------------------------------------------------------------------
 #   upload to github
 ##--------------------------------------------------------------------------
 
@@ -1872,10 +1968,13 @@ app_start()
 
         printf "  Press any key to abort ... ${NORMAL}"
         read -n 1 -s -r -p ""
+        echo
+        echo
 
-        echo
-        echo
-        exit 1
+        set +m
+        trap "kill -9 $app_pid 2> /dev/null" `seq 0 15`
+        kill $app_pid
+        set -m
     fi
 
     ##--------------------------------------------------------------------------
