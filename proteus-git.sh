@@ -1862,7 +1862,7 @@ tee $manifest_dir/$app_repo_dist_sel.json >/dev/null <<EOF
     "distrib":          "${app_repo_dist_sel}",
     "url":              "${app_repo_url}",
     "last_duration":    "Not Finished",
-    "last_update":      "Running ............",
+    "last_update":      "Running ...............",
     "last_update_ts":   "${DATE_TS}"
 }
 EOF
