@@ -1613,7 +1613,7 @@ app_run_dl_aptsrc()
                             --section utils \
                             --component main \
                             --priority 0 \
-                            includedeb $sys_code "$deb_package"
+                            includedeb $app_repo_dist_sel "$deb_package"
                     fi
 
                     echo
@@ -1635,7 +1635,7 @@ app_run_dl_aptsrc()
                             --component main \
                             --priority 0 \
                             --architecture $arch \
-                            includedeb $sys_code "$deb_package"
+                            includedeb $app_repo_dist_sel "$deb_package"
                     fi
 
                     echo
@@ -1657,7 +1657,7 @@ app_run_dl_aptsrc()
                             --component main \
                             --priority 0 \
                             --architecture $arch \
-                            includedeb $sys_code "$deb_package"
+                            includedeb $app_repo_dist_sel "$deb_package"
                     fi
 
                     echo
@@ -1703,9 +1703,9 @@ app_run_dl_gh()
     do
         repo=${lst_github[$i]}
 
-        #   (?:\b|_)(?:amd64|arm64|$sys_code)\b.*\.deb$
-        #   (?:\b|_)(?:amd64|arm64|$sys_code).*\b.*\.deb$
-        lst_releases=($( lastversion --pre --assets $repo --filter "(?:\b|_)(?:amd64|arm64|$sys_code)\b.*\.deb$" ))
+        #   (?:\b|_)(?:amd64|arm64|$app_repo_dist_sel)\b.*\.deb$
+        #   (?:\b|_)(?:amd64|arm64|$app_repo_dist_sel).*\b.*\.deb$
+        lst_releases=($( lastversion --pre --assets $repo --filter "(?:\b|_)(?:amd64|arm64|$app_repo_dist_sel)\b.*\.deb$" ))
 
         if [ -z ${count_git} ]; then
             count_git=${#lst_releases[@]}
@@ -1748,11 +1748,12 @@ app_run_dl_gh()
                         if [ -n "${bRep}" ] && [ -z "${OPT_DEV_NULLRUN}" ]; then
                             #   full path to deb package
                             deb_package="$app_dir_repo/$arch/$app_filename"
+
                             reprepro -V \
                                 --section utils \
                                 --component main \
                                 --priority 0 \
-                                includedeb $sys_code "$deb_package"
+                                includedeb $app_repo_dist_sel "$deb_package"
                         fi
 
                         echo
@@ -1765,12 +1766,13 @@ app_run_dl_gh()
                         if [ -n "${bRep}" ] && [ -z "${OPT_DEV_NULLRUN}" ]; then
                             #   full path to deb package
                             deb_package="$app_dir_repo/$arch/$app_filename"
+
                             reprepro -V \
                                 --section utils \
                                 --component main \
                                 --priority 0 \
                                 --architecture $arch \
-                                includedeb $sys_code "$deb_package"
+                                includedeb $app_repo_dist_sel "$deb_package"
                         fi
 
                         echo
@@ -1783,13 +1785,13 @@ app_run_dl_gh()
                         if [ -n "${bRep}" ] && [ -z "${OPT_DEV_NULLRUN}" ]; then
                             #   full path to deb package
                             deb_package="$app_dir_repo/$arch/$app_filename"
-                            echo "$sys_code $deb_package"
+
                             reprepro -V \
                                 --section utils \
                                 --component main \
                                 --priority 0 \
                                 --architecture $arch \
-                                includedeb $sys_code "$deb_package"
+                                includedeb $app_repo_dist_sel "$deb_package"
                         fi
 
                         echo
@@ -1826,7 +1828,7 @@ app_run_gh_end()
 
     sleep 1
 
-    local app_repo_commit="[E] auto-update [ $sys_code ] @ $NOW"
+    local app_repo_commit="[E] auto-update [ $app_repo_dist_sel ] @ $NOW"
     git commit -S -m "$app_repo_commit"
 
     sleep 1
@@ -1852,7 +1854,7 @@ app_run_gh_start()
     #   .app folder > create .json
     ##--------------------------------------------------------------------------
 
-tee $manifest_dir/$sys_code.json >/dev/null <<EOF
+tee $manifest_dir/$app_repo_dist_sel.json >/dev/null <<EOF
 {
     "name":             "${app_title}",
     "version":          "$(get_version)",
@@ -1872,7 +1874,7 @@ EOF
 
     sleep 1
 
-    local app_repo_commit="[S] auto-update [ $sys_code ] @ $NOW"
+    local app_repo_commit="[S] auto-update [ $app_repo_dist_sel ] @ $NOW"
     git commit -S -m "$app_repo_commit"
 
     sleep 1
@@ -1904,13 +1906,13 @@ app_run_tree_update()
     #   .app folder > create .json
     ##--------------------------------------------------------------------------
 
-tee $manifest_dir/$sys_code.json >/dev/null <<EOF
+tee $manifest_dir/$app_repo_dist_sel.json >/dev/null <<EOF
 {
     "name":             "${app_title}",
     "version":          "$(get_version)",
     "author":           "${app_repo_author}",
     "description":      "${app_about}",
-    "distrib":          "${sys_code}",
+    "distrib":          "${app_repo_dist_sel}",
     "url":              "${app_repo_url}",
     "last_duration":    "${elapsed}",
     "last_update":      "${NOW}",
