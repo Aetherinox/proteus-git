@@ -1892,6 +1892,7 @@ tee $manifest_dir/$sys_code.json >/dev/null <<EOF
     "version":          "$(get_version)",
     "author":           "${app_repo_author}",
     "description":      "${app_about}",
+    "distrib":          "${sys_code}",
     "url":              "${app_repo_url}",
     "last_duration":    "${elapsed}",
     "last_update":      "${NOW}",
