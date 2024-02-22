@@ -450,16 +450,22 @@ fi
 
 ##--------------------------------------------------------------------------
 #   check > Github / Gitlab API tokens
+#
+#   Must use the values
+#       - GITHUB_API_TOKEN
+#       - GITLAB_PA_TOKEN
+#
+#   Do not rename them, these are the globals recognized by LastVersion
 ##--------------------------------------------------------------------------
 
-if [ -z "${GITHUB_API_TOKEN}" ] && [ -z "${GITLAB_API_TOKEN}" ]; then
+if [ -z "${GITHUB_API_TOKEN}" ] && [ -z "${GITLAB_PA_TOKEN}" ]; then
     echo
     echo -e "  ${BOLD}${ORANGE}WARNING  ${WHITE}Missing ${YELLOW}API Tokens${WHITE}${NORMAL}"
     echo -e "  ${BOLD}${WHITE}Must create a ${FUCHSIA}secrets.sh${WHITE} file and define an API token${NORMAL}"
     echo -e "  ${BOLD}${WHITE}for either Github or Gitlab.${NORMAL}"
     echo
     echo -e "  ${BOLD}${WHITE}    ${RED}export ${GREEN}GITHUB_API_TOKEN=${WHITE}XXXXXXX${NORMAL}"
-    echo -e "  ${BOLD}${WHITE}    ${RED}export ${GREEN}GITLAB_API_TOKEN=${WHITE}XXXXXXX${NORMAL}"
+    echo -e "  ${BOLD}${WHITE}    ${RED}export ${GREEN}GITLAB_PA_TOKEN=${WHITE}XXXXXXX${NORMAL}"
     echo
     echo -e "  ${BOLD}${WHITE}Without supplying this, you will be rate limited.${NORMAL}"
     echo -e "  ${BOLD}${WHITE}on queries using ${YELLOW}LastVersion${WHITE}${NORMAL}"
@@ -1906,7 +1912,7 @@ app_run_tree_update()
     ##--------------------------------------------------------------------------
 
     duration=$SECONDS
-    elapsed="$(($duration / 60))m $(( $duration % 60 ))s"
+    elapsed="$(($duration / 60))m and $(( $duration % 60 ))s"
 
     ##--------------------------------------------------------------------------
     #   .app folder > create .json
@@ -2043,7 +2049,7 @@ app_start()
     ##--------------------------------------------------------------------------
 
     duration=$SECONDS
-    elapsed="$(($duration / 60)) minutes $(( $duration % 60 )) seconds elapsed."
+    elapsed="$(($duration / 60)) minutes and $(( $duration % 60 )) seconds elapsed."
 
     printf "%-57s %-15s\n\n\n\n" "${TIME}      ${elapsed}" | tee -a "${LOGS_FILE}" >/dev/null
 
