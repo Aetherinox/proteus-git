@@ -548,6 +548,17 @@ while [ $# -gt 0 ]; do
             echo -e "  ${FUCHSIA}${BLINK}Devmode Enabled${NORMAL}"
             ;;
 
+    -dd*|--dist*)
+            if [[ "$1" != *=* ]]; then shift; fi
+            OPT_DISTRIBUTION="${1#*=}"
+            if [ -z "${OPT_DISTRIBUTION}" ]; then
+                echo -e "  ${NORMAL}Must specify a valid distribution"
+                echo -e "  ${NORMAL}      Default:  ${YELLOW}${sys_code}${NORMAL}"
+
+                exit 1
+            fi
+            ;;
+
     -g*|--githubOnly*)
             OPT_ONLY_GIT=true
             echo "Update Github Only"
@@ -607,6 +618,13 @@ done
 ##--------------------------------------------------------------------------
 
 app_repo_branch_sel=$( [[ -n "$OPT_BRANCH" ]] && echo "$OPT_BRANCH" || echo "$app_repo_branch"  )
+
+##--------------------------------------------------------------------------
+#   distribution
+#   jammy, lunar, focal, noble, etc
+##--------------------------------------------------------------------------
+
+app_repo_dist_sel=$( [[ -n "$OPT_DISTRIBUTION" ]] && echo "$OPT_DISTRIBUTION" || echo "$sys_code"  )
 
 ##--------------------------------------------------------------------------
 #   line > comment
