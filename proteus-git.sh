@@ -32,6 +32,13 @@ if ! [ -x "$(command -v git)" ]; then
 fi
 
 ##--------------------------------------------------------------------------
+#   ensure we dont have any hanging applications
+##--------------------------------------------------------------------------
+
+sudo pkill -f -9 apt-move
+sudo pkill -f -9 apt-url
+
+##--------------------------------------------------------------------------
 #   vars > colors
 #
 #   tput setab  [1-7]       – Set a background color using ANSI escape
@@ -136,10 +143,12 @@ lst_github=(
 
 lst_packages=(
     'adduser'
+    'argon2'
     'apt-move'
     'apt-utils'
     'dialog'
-    'firefox',
+    'firefox'
+    'flatpak'
     'gnome-keyring'
     'gnome-keysign'
     'gnome-shell-extension-manager'
@@ -281,6 +290,8 @@ lst_packages=(
     'php-zip'
     'php-zmq'
     'php'
+    'snap'
+    'snapd'
     'wget'
 )
 
@@ -1104,7 +1115,8 @@ app_setup()
     local bMissingWget=false
     local bMissingTree=false
     local bMissingGPG=false
-    local bMissingMozilla=false
+    local bMissingGChrome=false
+    local bMissingMFirefox=false
     local bMissingRepo=false
     local bMissingReprepro=false
     local bGPGLoaded=false
@@ -1151,11 +1163,15 @@ app_setup()
     fi
 
     ##--------------------------------------------------------------------------
-    #   Missing mozilla .list
+    #   Missing browsers .list (google chrome, firefox)
     ##--------------------------------------------------------------------------
 
+    if ! [ -f "/etc/apt/sources.list.d/google-chrome.list" ]; then
+        bMissingGChrome=true
+    fi
+
     if ! [ -f "/etc/apt/sources.list.d/mozilla.list" ]; then
-        bMissingMozilla=true
+        bMissingMFirefox=true
     fi
 
     ##--------------------------------------------------------------------------
@@ -1168,7 +1184,7 @@ app_setup()
 
     # Check if contains title
     # If so, called from another function
-    if [ "$bMissingAptMove" = true ] || [ "$bMissingAptUrl" = true ] || [ "$bMissingCurl" = true ] || [ "$bMissingWget" = true ] || [ "$bMissingTree" = true ] || [ "$bMissingGPG" = true ] || [ "$bMissingMozilla" = true ] || [ "$bMissingRepo" = true ] || [ "$bMissingReprepro" = true ] || [ -n "${OPT_DEV_NULLRUN}" ]; then
+    if [ "$bMissingAptMove" = true ] || [ "$bMissingAptUrl" = true ] || [ "$bMissingCurl" = true ] || [ "$bMissingWget" = true ] || [ "$bMissingTree" = true ] || [ "$bMissingGPG" = true ] ||  [ "$bMissingGChrome" = true ]  || [ "$bMissingMFirefox" = true ] || [ "$bMissingRepo" = true ] || [ "$bMissingReprepro" = true ] || [ -n "${OPT_DEV_NULLRUN}" ]; then
         echo
         title "Addressing Dependencies ..."
         echo
@@ -1340,13 +1356,52 @@ app_setup()
         echo -e "[ ${STATUS_OK} ]"
     fi
 
+
+    ##--------------------------------------------------------------------------
+    #   missing google chrome
+    #
+    #   add google source repo so that chrome can be downloaded using apt-get
+    ##--------------------------------------------------------------------------
+
+    if [ "$bMissingGChrome" = true ] || [ -n "${OPT_DEV_NULLRUN}" ]; then
+        printf "%-50s %-5s\n" "${TIME}      Registering Chrome: /etc/apt/sources.list.d/google-chrome.list" | tee -a "${LOGS_FILE}" >/dev/null
+
+        printf '%-50s %-5s' "    |--- Registering Chrome" ""
+        sleep 0.5
+
+        sudo install -d -m 0755 /etc/apt/keyrings
+
+        if [ -z "${OPT_DEV_NULLRUN}" ]; then
+            sudo wget -qO - "https://dl-ssl.google.com/linux/linux_signing_key.pub" | sudo gpg --batch --yes --dearmor -o "/etc/apt/keyrings/dl.google.com.gpg" >/dev/null
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/dl.google.com.gpg] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list >/dev/null
+        fi
+
+        # change priority
+        echo 'Package: * Pin: origin dl.google.com Pin-Priority: 1000' | sudo tee /etc/apt/preferences.d/google-chrome >/dev/null
+
+        sleep 0.5
+        echo -e "[ ${STATUS_OK} ]"
+
+        printf "%-50s %-5s\n" "${TIME}      Updating user repo list with apt-get update" | tee -a "${LOGS_FILE}" >/dev/null
+
+        printf '%-50s %-5s' "    |--- Updating repo list" ""
+        sleep 0.5
+
+        if [ -z "${OPT_DEV_NULLRUN}" ]; then
+            sudo apt-get update -y -q >/dev/null
+        fi
+
+        sleep 0.5
+        echo -e "[ ${STATUS_OK} ]"
+    fi
+
     ##--------------------------------------------------------------------------
     #   missing mozilla repo
     #
     #   add mozilla source repo so that firefox can be downloaded using apt-get
     ##--------------------------------------------------------------------------
 
-    if [ "$bMissingMozilla" = true ] || [ -n "${OPT_DEV_NULLRUN}" ]; then
+    if [ "$bMissingMFirefox" = true ] || [ -n "${OPT_DEV_NULLRUN}" ]; then
         printf "%-50s %-5s\n" "${TIME}      Registering Mozilla: /etc/apt/sources.list.d/mozilla.list" | tee -a "${LOGS_FILE}" >/dev/null
 
         printf '%-50s %-5s' "    |--- Registering Mozilla" ""
@@ -1926,7 +1981,7 @@ tee $manifest_dir/$app_repo_dist_sel.json >/dev/null <<EOF
     "description":      "${app_about}",
     "distrib":          "${app_repo_dist_sel}",
     "url":              "${app_repo_url}",
-    "last_duration":    "Not Finished",
+    "last_duration":    "Incomplete",
     "last_update":      "Running ...............",
     "last_update_ts":   "${DATE_TS}"
 }
