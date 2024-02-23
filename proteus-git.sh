@@ -149,7 +149,6 @@ lst_packages=(
     'dialog'
     'firefox'
     'flatpak'
-    'google-chrome-stable'
     'gnome-keyring'
     'gnome-keysign'
     'gnome-shell-extension-manager'
@@ -1984,7 +1983,7 @@ tee $manifest_dir/$app_repo_dist_sel.json >/dev/null <<EOF
     "description":      "${app_about}",
     "distrib":          "${app_repo_dist_sel}",
     "url":              "${app_repo_url}",
-    "last_duration":    "Incomplete",
+    "last_duration":    ".......",
     "last_update":      "Running ...............",
     "last_update_ts":   "${DATE_TS}"
 }
