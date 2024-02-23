@@ -1138,9 +1138,21 @@ exit()
 #       export PATH="/home/aetherinox/bin:$PATH"
 ##--------------------------------------------------------------------------
 
-envpath_add()
+envpath_add_proteus()
 {
     local file_env=/etc/profile.d/proteus-git.sh
+    if [ "$2" = "force" ] || ! echo $PATH | $(which egrep) -q "(^|:)$1($|:)" ; then
+        if [ "$2" = "after" ] ; then
+            echo 'export PATH="$PATH:'$1'"' | sudo tee $file_env > /dev/null
+        else
+            echo 'export PATH="'$1':$PATH"' | sudo tee $file_env > /dev/null
+        fi
+    fi
+}
+
+envpath_add_lastversion()
+{
+    local file_env=/etc/profile.d/lastversion.sh
     if [ "$2" = "force" ] || ! echo $PATH | $(which egrep) -q "(^|:)$1($|:)" ; then
         if [ "$2" = "after" ] ; then
             echo 'export PATH="$PATH:'$1'"' | sudo tee $file_env > /dev/null
@@ -1275,6 +1287,7 @@ app_setup()
     local bMissingRepo=false
     local bMissingReprepro=false
     local bGPGLoaded=false
+    local bMissingLastVersion=false
 
     # require whiptail
     if ! [ -x "$(command -v apt-move)" ]; then
@@ -1304,6 +1317,11 @@ app_setup()
     # require reprepro
     if ! [ -x "$(command -v reprepro)" ]; then
         bMissingReprepro=true
+    fi
+
+    # require lastversion
+    if ! [ -x "$(command -v lastversion)" ]; then
+        bMissingLastVersion=true
     fi
 
     ##--------------------------------------------------------------------------
@@ -1710,7 +1728,42 @@ app_setup()
     #   add env path /home/$USER/bin/
     ##--------------------------------------------------------------------------
 
-    envpath_add '$HOME/bin'
+    envpath_add_proteus '$HOME/bin'
+
+    ##--------------------------------------------------------------------------
+    #   missing lastversion
+    ##--------------------------------------------------------------------------
+
+    if [ "$bMissingLastVersion" = true ] || [ -n "${OPT_DEV_NULLRUN}" ]; then
+        printf "%-50s %-5s\n" "${TIME}      Installing LastVersion" | tee -a "${LOGS_FILE}" >/dev/null
+        printf '%-50s %-5s' "    |--- Adding LastVersion package" ""
+
+        sleep 0.5
+
+        if [ -z "${OPT_DEV_NULLRUN}" ]; then
+            sudo apt-get update -y -q >> /dev/null 2>&1
+            sudo apt-get install python3-pip python3-venv -y -qq >> /dev/null 2>&1
+
+            #wget https://github.com/dvershinin/lastversion/archive/refs/tags/v3.5.0.zip
+            #mkdir /home/${USER}/Packages/
+            #unzip v3.5.0.zip -d /home/${USER}/Packages/lastversion
+
+            ##--------------------------------------------------------------------------
+            #   Uninstall with
+            #       pip uninstall lastversion
+            ##--------------------------------------------------------------------------
+
+            pip install lastversion --break-system-packages
+            cp /home/${USER}/.local/bin/lastversion /home/${USER}/bin/
+            sudo touch /etc/profile.d/lastversion.sh
+            echo 'export PATH="$HOME/bin:$PATH"' | sudo tee /etc/profile.d/lastversion.sh
+            source $HOME/.bashrc
+            source $HOME/.profile
+        fi
+
+        sleep 0.5
+        echo -e "[ ${STATUS_OK} ]"
+    fi
 
     ##--------------------------------------------------------------------------
     #   modify gpg-agent.conf
