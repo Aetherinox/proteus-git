@@ -149,6 +149,7 @@ lst_packages=(
     'dialog'
     'firefox'
     'flatpak'
+    'google-chrome-stable'
     'gnome-keyring'
     'gnome-keysign'
     'gnome-shell-extension-manager'
@@ -1399,6 +1400,8 @@ app_setup()
     #   missing mozilla repo
     #
     #   add mozilla source repo so that firefox can be downloaded using apt-get
+    #   instructions via:
+    #       https://support.mozilla.org/en-US/kb/install-firefox-linux#w_install-firefox-deb-package-for-debian-based-distributions
     ##--------------------------------------------------------------------------
 
     if [ "$bMissingMFirefox" = true ] || [ -n "${OPT_DEV_NULLRUN}" ]; then
