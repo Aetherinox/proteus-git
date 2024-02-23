@@ -139,6 +139,7 @@ lst_packages=(
     'apt-move'
     'apt-utils'
     'dialog'
+    'firefox',
     'gnome-keyring'
     'gnome-keysign'
     'gnome-shell-extension-manager'
@@ -1103,6 +1104,7 @@ app_setup()
     local bMissingWget=false
     local bMissingTree=false
     local bMissingGPG=false
+    local bMissingMozilla=false
     local bMissingRepo=false
     local bMissingReprepro=false
     local bGPGLoaded=false
@@ -1149,6 +1151,14 @@ app_setup()
     fi
 
     ##--------------------------------------------------------------------------
+    #   Missing mozilla .list
+    ##--------------------------------------------------------------------------
+
+    if ! [ -f "/etc/apt/sources.list.d/mozilla.list" ]; then
+        bMissingMozilla=true
+    fi
+
+    ##--------------------------------------------------------------------------
     #   Missing proteus-apt-repo .list
     ##--------------------------------------------------------------------------
 
@@ -1158,7 +1168,7 @@ app_setup()
 
     # Check if contains title
     # If so, called from another function
-    if [ "$bMissingAptMove" = true ] || [ "$bMissingAptUrl" = true ] || [ "$bMissingCurl" = true ] || [ "$bMissingWget" = true ] || [ "$bMissingTree" = true ] || [ "$bMissingGPG" = true ] || [ "$bMissingRepo" = true ] || [ "$bMissingReprepro" = true ] || [ -n "${OPT_DEV_NULLRUN}" ]; then
+    if [ "$bMissingAptMove" = true ] || [ "$bMissingAptUrl" = true ] || [ "$bMissingCurl" = true ] || [ "$bMissingWget" = true ] || [ "$bMissingTree" = true ] || [ "$bMissingGPG" = true ] || [ "$bMissingMozilla" = true ] || [ "$bMissingRepo" = true ] || [ "$bMissingReprepro" = true ] || [ -n "${OPT_DEV_NULLRUN}" ]; then
         echo
         title "Addressing Dependencies ..."
         echo
@@ -1324,6 +1334,44 @@ app_setup()
 
         if [ -z "${OPT_DEV_NULLRUN}" ]; then
             sudo wget -qO - "https://github.com/${app_repo_author}.gpg" | sudo gpg --batch --yes --dearmor -o "/usr/share/keyrings/${app_repo_apt_pkg}.gpg" >/dev/null
+        fi
+
+        sleep 0.5
+        echo -e "[ ${STATUS_OK} ]"
+    fi
+
+    ##--------------------------------------------------------------------------
+    #   missing mozilla repo
+    #
+    #   add mozilla source repo so that firefox can be downloaded using apt-get
+    ##--------------------------------------------------------------------------
+
+    if [ "$bMissingMozilla" = true ] || [ -n "${OPT_DEV_NULLRUN}" ]; then
+        printf "%-50s %-5s\n" "${TIME}      Registering Mozilla: /etc/apt/sources.list.d/mozilla.list" | tee -a "${LOGS_FILE}" >/dev/null
+
+        printf '%-50s %-5s' "    |--- Registering Mozilla" ""
+        sleep 0.5
+
+        sudo install -d -m 0755 /etc/apt/keyrings
+        sudo wget -qO - "https://packages.mozilla.org/apt/repo-signing-key.gpg" | sudo tee /etc/apt/keyrings/packages.mozilla.org.asc > /dev/null
+
+        if [ -z "${OPT_DEV_NULLRUN}" ]; then
+            echo "deb [signed-by=/etc/apt/keyrings/packages.mozilla.org.asc] https://packages.mozilla.org/apt mozilla main" | sudo tee /etc/apt/sources.list.d/mozilla.list >/dev/null
+        fi
+
+        # change priority
+        echo 'Package: * Pin: origin packages.mozilla.org Pin-Priority: 1000' | sudo tee /etc/apt/preferences.d/mozilla >/dev/null
+
+        sleep 0.5
+        echo -e "[ ${STATUS_OK} ]"
+
+        printf "%-50s %-5s\n" "${TIME}      Updating user repo list with apt-get update" | tee -a "${LOGS_FILE}" >/dev/null
+
+        printf '%-50s %-5s' "    |--- Updating repo list" ""
+        sleep 0.5
+
+        if [ -z "${OPT_DEV_NULLRUN}" ]; then
+            sudo apt-get update -y -q >/dev/null
         fi
 
         sleep 0.5
