@@ -22,23 +22,6 @@ if [ -f secrets.sh ]; then
 fi
 
 ##--------------------------------------------------------------------------
-#   requite git
-##--------------------------------------------------------------------------
-
-# require git
-if ! [ -x "$(command -v git)" ]; then
-    sudo apt-get update -y -q >/dev/null 2>&1
-    sudo apt-get install git -y -qq >/dev/null 2>&1
-fi
-
-##--------------------------------------------------------------------------
-#   ensure we dont have any hanging applications
-##--------------------------------------------------------------------------
-
-# sudo pkill -f -9 apt-move
-# sudo pkill -f -9 apt-url
-
-##--------------------------------------------------------------------------
 #   vars > colors
 #
 #   tput setab  [1-7]       – Set a background color using ANSI escape
@@ -340,13 +323,27 @@ else
 fi
 
 ##--------------------------------------------------------------------------
+#   requite packages before anything begins
+##--------------------------------------------------------------------------
+
+# require git
+if ! [ -x "$(command -v git)" ]; then
+    echo -e "  ${GREYL}Installing package ${MAGENTA}Git${WHITE}"
+    sudo apt-get update -y -q >/dev/null 2>&1
+    sudo apt-get install git -y -qq >/dev/null 2>&1
+
+    echo -e "  ${GREYL}Installing package ${MAGENTA}GPG${WHITE}"
+    sudo apt-get update -y -q >/dev/null 2>&1
+    sudo apt-get install gpg -y -qq >/dev/null 2>&1
+fi
+
+##--------------------------------------------------------------------------
 #   upload to github > precheck
 ##--------------------------------------------------------------------------
 
 app_run_github_precheck( )
 {
-
-    echo -e "  ${GREYL}Registering Github Config Entries${WHITE}"
+    echo -e "  ${GREYL}Configuring git config${WHITE}"
 
     git config --global credential.helper store
 
@@ -363,11 +360,10 @@ app_run_github_precheck( )
     git config --global init.defaultBranch ${app_repo_branch}
     git config --global user.name ${GITHUB_NAME}
     git config --global user.email ${GITHUB_EMAIL}
-    ##git config --global pull.rebase true
 }
 
 ##--------------------------------------------------------------------------
-#   check > secrets file doesnt exist
+#   secrets.sh file missing -- abort
 ##--------------------------------------------------------------------------
 
 if ! [ -f secrets.sh ]; then
@@ -390,7 +386,7 @@ if ! [ -f secrets.sh ]; then
 fi
 
 ##--------------------------------------------------------------------------
-#   check > gpg key added to .gitignore
+#   check if GPG key defined in git config user.signingKey
 ##--------------------------------------------------------------------------
 
 checkgit_signing=$( git config --global --get-all user.signingKey )
@@ -424,6 +420,11 @@ if [ -z "${checkgit_signing}" ]; then
 
     sleep 2
 
+    ##--------------------------------------------------------------------------
+    #   run the same check as above to double confirm that user.signingKey
+    #   has been defined.
+    ##--------------------------------------------------------------------------
+
     checkgit_signing=$( git config --global --get-all user.signingKey )
     if [ -z "${checkgit_signing}" ]; then
         echo
@@ -440,7 +441,7 @@ fi
 ##--------------------------------------------------------------------------
 #   check > GPG key
 #
-#   GPG_KEY comes from export GPG_KEY in secrets.sh
+#   you must define GPG_KEY in the secrets.sh file
 ##--------------------------------------------------------------------------
 
 if [ -z "${GPG_KEY}" ]; then
@@ -470,6 +471,10 @@ fi
 #       - GITLAB_PA_TOKEN
 #
 #   Do not rename them, these are the globals recognized by LastVersion
+#   
+#   This is required for LastVersion when checking if specific github repos
+#   have updates to any packages. Failure to provide an API key means
+#   that you will be rate limited.
 ##--------------------------------------------------------------------------
 
 if [ -z "${GITHUB_API_TOKEN}" ] && [ -z "${GITLAB_PA_TOKEN}" ]; then
@@ -525,13 +530,75 @@ get_version_compare_gt()
 }
 
 ##--------------------------------------------------------------------------
-#   options
+#   func > test
 #
-#       -d      developer mode
-#       -h      help menu
-#       -n      developer: null run
-#       -s      silent mode | logging disabled
-#       -t      theme
+#   development function, not used in normal operations,
+#   has no specific purpose other than to drop code in here and test with
+#
+#   Execute with:
+#       proteus-git.sh --test
+##--------------------------------------------------------------------------
+
+app_test( )
+{
+    printf '%-57s' "    |--- Running Test"
+    echo
+
+    ##--------------------------------------------------------------------------
+    #   modify gpg.conf
+    #
+    #   first check if GPG installed (usually on Ubuntu it is)
+    #   then modify user's gpg-agent.conf file
+    ##--------------------------------------------------------------------------
+
+    gpgconfig_file="/home/${USER}/.gnupg/gpg-agent.conf"
+
+    if ! [ -x "$(command -v gpg)" ] || [ -n "${OPT_DEV_NULLRUN}" ]; then
+        printf '%-57s' "    |--- Installing GPG"
+        sleep 1
+        if [ -z "${OPT_DEV_NULLRUN}" ]; then
+            sudo apt-get update -y -q >> /dev/null 2>&1
+            sudo apt-get install gpg -y -qq >> /dev/null 2>&1
+        fi
+        echo -e "[ ${STATUS_OK} ]"
+        sleep 1
+    fi
+
+sudo tee ${gpgconfig_file} << EOF > /dev/null
+enable-putty-support
+enable-ssh-support
+use-standard-socket
+default-cache-ttl-ssh 60
+max-cache-ttl-ssh 120
+default-cache-ttl 28800 # gpg key cache time
+max-cache-ttl 28800 # max gpg key cache time
+pinentry-program "/usr/bin/pinentry"
+allow-loopback-pinentry
+allow-preset-passphrase
+pinentry-timeout 0
+EOF
+
+    printf '%-57s' "    |--- Set ownership to ${USER}"
+    sleep 1
+    if [ -z "${OPT_DEV_NULLRUN}" ]; then
+        sudo chgrp ${USER} ${gpgconfig_file} >> $LOGS_FILE 2>&1
+        sudo chown ${USER} ${gpgconfig_file} >> $LOGS_FILE 2>&1
+    fi
+    echo -e "[ ${STATUS_OK} ]"
+
+    printf '%-57s' "    |--- Restart GPG Agent"
+    sleep 1
+    gpgconf --kill gpg-agent
+    echo -e "[ ${STATUS_OK} ]"
+
+    exit 0
+    sleep 0.2
+}
+
+##--------------------------------------------------------------------------
+#   Display Usage Help
+#
+#   activate using ./proteus-git.sh --help or -h
 ##--------------------------------------------------------------------------
 
 opt_usage()
@@ -559,6 +626,13 @@ opt_usage()
     exit 1
 }
 
+##--------------------------------------------------------------------------
+#   command-line options
+#
+#   reminder that any functions which need executed must be defined BEFORE
+#   this point. Bash sucks like that.
+##--------------------------------------------------------------------------
+
 while [ $# -gt 0 ]; do
   case "$1" in
     -d|--dev)
@@ -575,6 +649,14 @@ while [ $# -gt 0 ]; do
 
                 exit 1
             fi
+            ;;
+
+    -s*|--setup*)
+            app_setup
+            ;;
+
+    -t*|--test*)
+            app_test
             ;;
 
     -g*|--githubOnly*)
@@ -633,6 +715,7 @@ done
 
 ##--------------------------------------------------------------------------
 #   vars > active repo branch
+#   typically "main"
 ##--------------------------------------------------------------------------
 
 app_repo_branch_sel=$( [[ -n "$OPT_BRANCH" ]] && echo "$OPT_BRANCH" || echo "$app_repo_branch"  )
@@ -646,6 +729,8 @@ app_repo_dist_sel=$( [[ -n "$OPT_DISTRIBUTION" ]] && echo "$OPT_DISTRIBUTION" ||
 
 ##--------------------------------------------------------------------------
 #   line > comment
+#
+#   allows for lines to be commented out
 #
 #   comment REGEX FILE [COMMENT-MARK]
 #   comment "skip-grant-tables" "/etc/mysql/my.cnf"
@@ -662,6 +747,8 @@ line_comment()
 ##--------------------------------------------------------------------------
 #   line > uncomment
 #
+#   allows for lines to be uncommented
+#
 #   uncomment REGEX FILE [COMMENT-MARK]
 #   uncomment "skip-grant-tables" "/etc/mysql/my.cnf"
 ##--------------------------------------------------------------------------
@@ -676,6 +763,8 @@ line_uncomment()
 
 ##--------------------------------------------------------------------------
 #   func > logs > begin
+#
+#   sets the script up to provide logging to the /logs/ folder
 ##--------------------------------------------------------------------------
 
 Logs_Begin()
@@ -725,6 +814,9 @@ Logs_Begin()
 
 ##--------------------------------------------------------------------------
 #   func > logs > finish
+#
+#   stop logging system. Mainly kills the pipe otherwise you can't access
+#   the file.
 ##--------------------------------------------------------------------------
 
 Logs_Finish()
@@ -800,6 +892,8 @@ spin()
 
 ##--------------------------------------------------------------------------
 #   func > spinner > halt
+#
+#   destroy text spinner process id
 ##--------------------------------------------------------------------------
 
 spinner_halt()
@@ -813,6 +907,22 @@ spinner_halt()
 
 ##--------------------------------------------------------------------------
 #   func > cli selection menu
+#
+#   allows for prompting user with questions and to select their desired
+#   choice.
+#
+#   echo -e "  ${BOLD}${FUCHSIA}ATTENTION  ${WHITE}This is a question${NORMAL}"
+#
+#   export CHOICES=( "Choice 1" "Choice 2" )
+#   cli_options
+#   case $? in
+#       0 )
+#           bChoiceProteus=true
+#       ;;
+#       1 )
+#           bChoiceSqlSecure=true
+#       ;;
+#   esac
 ##--------------------------------------------------------------------------
 
 cli_options()
@@ -876,6 +986,18 @@ cli_options()
 #   func > cli question
 #
 #   used for command-line to prompt the user with a question
+#
+#   if cli_question "  Install the above packages?"; then
+#       sleep 0.5
+#
+#       for key in "${!pendinstall[@]}"
+#       do
+#           app_name="${pendinstall[${key}]}"
+#           app_func="${app_functions[$app_name]}"
+#
+#           $app_func "${app_name}" "${app_func}"
+#       done
+#   fi
 ##--------------------------------------------------------------------------
 
 cli_question( )
@@ -924,6 +1046,9 @@ cli_question( )
 #
 #   opening urls in bash can be wonky as hell. just doing it the manual
 #   way to ensure a browser gets opened.
+#
+#   example
+#       open_url "http://127.0.0.1"
 ##--------------------------------------------------------------------------
 
 open_url()
@@ -934,6 +1059,9 @@ open_url()
 
 ##--------------------------------------------------------------------------
 #   func > cmd title
+#
+#   example
+#       title "First Time Setup ..."
 ##--------------------------------------------------------------------------
 
 title()
@@ -944,6 +1072,9 @@ title()
 
 ##--------------------------------------------------------------------------
 #   func > begin action
+#
+#   example
+#       begin "Updating from branch main"
 ##--------------------------------------------------------------------------
 
 begin()
@@ -1024,6 +1155,8 @@ envpath_add()
 #
 #   updates the /home/USER/bin/proteus file which allows proteus to be
 #   ran from anywhere.
+#
+#   activate using ./proteus-git --update or -u
 ##--------------------------------------------------------------------------
 
 app_update()
@@ -1489,7 +1622,6 @@ app_setup()
         echo -e "[ ${STATUS_OK} ]"
     fi
 
-
     ##--------------------------------------------------------------------------
     #   missing apt-move
     ##--------------------------------------------------------------------------
@@ -1528,7 +1660,6 @@ app_setup()
         echo -e "[ ${STATUS_OK} ]"
     fi
 
-
     ##--------------------------------------------------------------------------
     #   missing reprepro
     ##--------------------------------------------------------------------------
@@ -1554,6 +1685,54 @@ app_setup()
 
     envpath_add '$HOME/bin'
 
+    ##--------------------------------------------------------------------------
+    #   modify gpg.conf
+    #
+    #   first check if GPG installed (usually on Ubuntu it is)
+    #   then modify user's gpg-agent.conf file
+    ##--------------------------------------------------------------------------
+
+    gpgconfig_file="/home/${USER}/.gnupg/gpg-agent.conf"
+
+    if ! [ -x "$(command -v gpg)" ] || [ -n "${OPT_DEV_NULLRUN}" ]; then
+        printf '%-57s' "    |--- Installing GPG"
+        sleep 1
+        if [ -z "${OPT_DEV_NULLRUN}" ]; then
+            sudo apt-get update -y -q >> /dev/null 2>&1
+            sudo apt-get install gpg -y -qq >> /dev/null 2>&1
+        fi
+        echo -e "[ ${STATUS_OK} ]"
+        sleep 1
+    fi
+
+sudo tee ${gpgconfig_file} << EOF > /dev/null
+enable-putty-support
+enable-ssh-support
+use-standard-socket
+default-cache-ttl-ssh 60
+max-cache-ttl-ssh 120
+default-cache-ttl 28800 # gpg key cache time
+max-cache-ttl 28800 # max gpg key cache time
+pinentry-program "/usr/bin/pinentry"
+allow-loopback-pinentry
+allow-preset-passphrase
+pinentry-timeout 0
+EOF
+
+    printf '%-57s' "    |--- Set ownership to ${USER}"
+    sleep 1
+    if [ -z "${OPT_DEV_NULLRUN}" ]; then
+        sudo chgrp ${USER} ${gpgconfig_file} >> $LOGS_FILE 2>&1
+        sudo chown ${USER} ${gpgconfig_file} >> $LOGS_FILE 2>&1
+    fi
+    echo -e "[ ${STATUS_OK} ]"
+
+    printf '%-57s' "    |--- Restart GPG Agent"
+    sleep 1
+    gpgconf --kill gpg-agent
+    echo -e "[ ${STATUS_OK} ]"
+
+
     sleep 0.5
 
 }
@@ -1564,7 +1743,6 @@ app_setup
 ##--------------------------------------------------------------------------
 
 if [ ! -d .git ]; then
-
     echo
     echo
     echo -e "  ${ORANGE}Error${WHITE}"
